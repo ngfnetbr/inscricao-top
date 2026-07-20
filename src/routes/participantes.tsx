@@ -132,11 +132,11 @@ function ParticipantesPage() {
         {!isLoading && (
           <>
             <div id="dia-quinta" className="scroll-mt-24">
-              <SecaoDia titulo="Quinta-feira, 23/07" grupos={quinta} />
+              <SecaoDia titulo="Quinta-feira, 23/07" grupos={quinta} abertas={abertas} onToggle={toggle} />
             </div>
 
             <div id="dia-sexta" className="scroll-mt-24">
-              <SecaoDia titulo="Sexta-feira, 24/07" grupos={sexta} />
+              <SecaoDia titulo="Sexta-feira, 24/07" grupos={sexta} abertas={abertas} onToggle={toggle} />
             </div>
           </>
         )}
