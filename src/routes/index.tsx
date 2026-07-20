@@ -260,7 +260,41 @@ function InscricaoPage() {
   );
 }
 
+/* ----------------------------- Etapa 0 - Landing ----------------------------- */
+
+function EtapaLanding({ onInscrever }: { onInscrever: () => void }) {
+  return (
+    <section className="card-elevated p-6 sm:p-10 text-center">
+      <div className="brand-gradient mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl text-primary-foreground shadow-sm">
+        <GraduationCap className="h-8 w-8" />
+      </div>
+      <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        Oficinas de Estudo e Planejamento
+      </h2>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+        Escolha uma oficina para cada dia (23 e 24 de julho) e garanta sua vaga.
+      </p>
+
+      <div className="mx-auto mt-8 flex max-w-md flex-col gap-3">
+        <button
+          onClick={onInscrever}
+          className="brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-semibold text-primary-foreground shadow-sm hover:opacity-95"
+        >
+          <Sparkles className="h-5 w-5" /> Inscreva-se agora
+        </button>
+        <Link
+          to="/consultar"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-4 text-base font-medium text-foreground shadow-sm hover:bg-muted"
+        >
+          <Search className="h-5 w-5" /> Consultar minha inscrição
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 /* ----------------------------- Etapa 1 ----------------------------- */
+
 
 function Etapa1(props: {
   cpf: string;
