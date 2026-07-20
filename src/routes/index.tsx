@@ -31,7 +31,7 @@ type Sucesso = {
 };
 
 function InscricaoPage() {
-  const [etapa, setEtapa] = useState<Etapa>(1);
+  const [etapa, setEtapa] = useState<Etapa>(0);
 
   // Etapa 1
   const [cpf, setCpf] = useState("");
