@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ParticipantesRouteImport } from './routes/participantes'
 import { Route as ConsultarRouteImport } from './routes/consultar'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ParticipantesRoute = ParticipantesRouteImport.update({
+  id: '/participantes',
+  path: '/participantes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConsultarRoute = ConsultarRouteImport.update({
   id: '/consultar',
   path: '/consultar',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/consultar': typeof ConsultarRoute
+  '/participantes': typeof ParticipantesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/consultar': typeof ConsultarRoute
+  '/participantes': typeof ParticipantesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/consultar': typeof ConsultarRoute
+  '/participantes': typeof ParticipantesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/consultar'
+  fullPaths: '/' | '/admin' | '/consultar' | '/participantes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/consultar'
-  id: '__root__' | '/' | '/admin' | '/consultar'
+  to: '/' | '/admin' | '/consultar' | '/participantes'
+  id: '__root__' | '/' | '/admin' | '/consultar' | '/participantes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ConsultarRoute: typeof ConsultarRoute
+  ParticipantesRoute: typeof ParticipantesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/participantes': {
+      id: '/participantes'
+      path: '/participantes'
+      fullPath: '/participantes'
+      preLoaderRoute: typeof ParticipantesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/consultar': {
       id: '/consultar'
       path: '/consultar'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ConsultarRoute: ConsultarRoute,
+  ParticipantesRoute: ParticipantesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
