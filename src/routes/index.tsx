@@ -237,6 +237,7 @@ function InscricaoPage() {
             oficinas={oficinasSexta}
             selecionadaId={oficinaSextaId}
             outraSelecionadaId={oficinaQuintaId}
+            outraOficina={oficinaQuinta}
             onSelecionar={(id) => setOficinaSextaId(id)}
             avancar={() => setEtapa(4)}
             voltar={() => setEtapa(2)}
