@@ -180,6 +180,7 @@ export type Database = {
         }
         Returns: Json
       }
+      consultar_inscricao_por_cpf: { Args: { _cpf: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
