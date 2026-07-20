@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Users, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, Users, Calendar, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { listarParticipantesPublico, type ParticipantePublico } from "@/lib/oficinas";
