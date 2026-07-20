@@ -190,11 +190,14 @@ function InscricaoPage() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-6 pb-24">
-        {etapa < 5 && (
+        {etapa >= 1 && etapa < 5 && (
           <div className="mb-6">
             <StepBar atual={etapa} total={4} labels={labels.slice(0, 4)} />
           </div>
         )}
+
+        {etapa === 0 && <EtapaLanding onInscrever={() => setEtapa(1)} />}
+
 
         {etapa === 1 && (
           <Etapa1
