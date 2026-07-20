@@ -181,6 +181,19 @@ export type Database = {
         Returns: Json
       }
       consultar_inscricao_por_cpf: { Args: { _cpf: string }; Returns: Json }
+      listar_participantes_publico: {
+        Args: never
+        Returns: {
+          data: string
+          dia: string
+          ministrante: string
+          nome: string
+          oficina_id: string
+          ordem: number
+          publico_alvo: string
+          titulo: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
