@@ -435,6 +435,9 @@ function EtapaOficinas(props: {
   avancar: () => void;
 }) {
   const { titulo, oficinas, selecionadaId, outraSelecionadaId, onSelecionar, voltar, avancar } = props;
+  const outraSelecionada = oficinas.find((o) => o.id === outraSelecionadaId)
+    ?? props.outraOficina
+    ?? null;
 
   return (
     <section>
