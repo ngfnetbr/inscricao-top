@@ -430,14 +430,14 @@ function EtapaOficinas(props: {
   oficinas: OficinaComVagas[];
   selecionadaId: string | null;
   outraSelecionadaId: string | null;
+  outraOficina?: OficinaComVagas | null;
   onSelecionar: (id: string) => void;
   voltar: () => void;
   avancar: () => void;
 }) {
-  const { titulo, oficinas, selecionadaId, outraSelecionadaId, onSelecionar, voltar, avancar } = props;
-  const outraSelecionada = oficinas.find((o) => o.id === outraSelecionadaId)
-    ?? props.outraOficina
-    ?? null;
+  const { titulo, oficinas, selecionadaId, outraSelecionadaId, outraOficina, onSelecionar, voltar, avancar } = props;
+  const outraSelecionada =
+    oficinas.find((o) => o.id === outraSelecionadaId) ?? outraOficina ?? null;
 
   return (
     <section>
