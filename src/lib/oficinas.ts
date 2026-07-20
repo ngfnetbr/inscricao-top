@@ -59,3 +59,21 @@ export async function confirmarInscricao(params: {
   if (error) throw error;
   return data as unknown as ConfirmarResultado;
 }
+
+export type ConsultaResultado =
+  | {
+      status: "encontrado";
+      protocolo: string;
+      nome: string;
+      criado_em: string;
+      oficina_quinta: { id: string; titulo: string; ministrante: string; publico_alvo: string | null; data: string };
+      oficina_sexta: { id: string; titulo: string; ministrante: string; publico_alvo: string | null; data: string };
+    }
+  | { status: "nao_encontrado" }
+  | { status: "cpf_invalido" };
+
+export async function consultarInscricaoPorCpf(cpf: string): Promise<ConsultaResultado> {
+  const { data, error } = await supabase.rpc("consultar_inscricao_por_cpf", { _cpf: cpf });
+  if (error) throw error;
+  return data as unknown as ConsultaResultado;
+}

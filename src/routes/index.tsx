@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
   component: InscricaoPage,
 });
 
-type Etapa = 1 | 2 | 3 | 4 | 5;
+type Etapa = 0 | 1 | 2 | 3 | 4 | 5;
 
 type Sucesso = {
   protocolo: string;
@@ -31,7 +31,7 @@ type Sucesso = {
 };
 
 function InscricaoPage() {
-  const [etapa, setEtapa] = useState<Etapa>(1);
+  const [etapa, setEtapa] = useState<Etapa>(0);
 
   // Etapa 1
   const [cpf, setCpf] = useState("");
@@ -190,11 +190,14 @@ function InscricaoPage() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-6 pb-24">
-        {etapa < 5 && (
+        {etapa >= 1 && etapa < 5 && (
           <div className="mb-6">
             <StepBar atual={etapa} total={4} labels={labels.slice(0, 4)} />
           </div>
         )}
+
+        {etapa === 0 && <EtapaLanding onInscrever={() => setEtapa(1)} />}
+
 
         {etapa === 1 && (
           <Etapa1
@@ -257,7 +260,41 @@ function InscricaoPage() {
   );
 }
 
+/* ----------------------------- Etapa 0 - Landing ----------------------------- */
+
+function EtapaLanding({ onInscrever }: { onInscrever: () => void }) {
+  return (
+    <section className="card-elevated p-6 sm:p-10 text-center">
+      <div className="brand-gradient mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl text-primary-foreground shadow-sm">
+        <GraduationCap className="h-8 w-8" />
+      </div>
+      <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        Oficinas de Estudo e Planejamento
+      </h2>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+        Escolha uma oficina para cada dia (23 e 24 de julho) e garanta sua vaga.
+      </p>
+
+      <div className="mx-auto mt-8 flex max-w-md flex-col gap-3">
+        <button
+          onClick={onInscrever}
+          className="brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-semibold text-primary-foreground shadow-sm hover:opacity-95"
+        >
+          <Sparkles className="h-5 w-5" /> Inscreva-se agora
+        </button>
+        <Link
+          to="/consultar"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-4 text-base font-medium text-foreground shadow-sm hover:bg-muted"
+        >
+          <Search className="h-5 w-5" /> Consultar minha inscrição
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 /* ----------------------------- Etapa 1 ----------------------------- */
+
 
 function Etapa1(props: {
   cpf: string;
@@ -321,12 +358,21 @@ function Etapa1(props: {
           <p className="text-sm text-muted-foreground">Encontramos este cadastro:</p>
           <p className="mt-1 text-xl font-bold text-foreground">{pessoaEncontrada.nome}</p>
           <p className="mt-3 text-sm font-medium text-foreground">É você?</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               onClick={avancar}
-              className="brand-gradient inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-95"
+              className="brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-95"
             >
               <CheckCircle2 className="h-4 w-4" /> Sim, sou eu
+            </button>
+            <button
+              onClick={() => {
+                setStatusBusca("editando");
+                setNome(pessoaEncontrada.nome);
+              }}
+              className="rounded-xl border border-primary/40 bg-card px-5 py-3 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              Sou eu, mas meu nome está incorreto
             </button>
             <button
               onClick={() => {
