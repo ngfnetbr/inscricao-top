@@ -358,12 +358,21 @@ function Etapa1(props: {
           <p className="text-sm text-muted-foreground">Encontramos este cadastro:</p>
           <p className="mt-1 text-xl font-bold text-foreground">{pessoaEncontrada.nome}</p>
           <p className="mt-3 text-sm font-medium text-foreground">É você?</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               onClick={avancar}
-              className="brand-gradient inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-95"
+              className="brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-95"
             >
               <CheckCircle2 className="h-4 w-4" /> Sim, sou eu
+            </button>
+            <button
+              onClick={() => {
+                setStatusBusca("editando");
+                setNome(pessoaEncontrada.nome);
+              }}
+              className="rounded-xl border border-primary/40 bg-card px-5 py-3 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              Sou eu, mas meu nome está incorreto
             </button>
             <button
               onClick={() => {
