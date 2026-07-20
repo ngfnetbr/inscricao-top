@@ -290,6 +290,8 @@ function EtapaLanding({ onInscrever }: { onInscrever: () => void }) {
         </Link>
         <Link
           to="/participantes"
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-4 text-base font-medium text-foreground shadow-sm hover:bg-muted"
         >
           <Users className="h-5 w-5" /> Ver participantes por oficina
