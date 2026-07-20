@@ -62,6 +62,8 @@ function ParticipantesPage() {
     refetchOnWindowFocus: true,
   });
 
+  const [abertas, setAbertas] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     const channel = supabase
       .channel("inscricoes-publico")
@@ -78,6 +80,15 @@ function ParticipantesPage() {
 
   function irPara(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function toggle(oficinaId: string) {
+    setAbertas((prev) => {
+      const next = new Set(prev);
+      if (next.has(oficinaId)) next.delete(oficinaId);
+      else next.add(oficinaId);
+      return next;
+    });
   }
 
   return (
