@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
   component: InscricaoPage,
 });
 
-type Etapa = 1 | 2 | 3 | 4 | 5;
+type Etapa = 0 | 1 | 2 | 3 | 4 | 5;
 
 type Sucesso = {
   protocolo: string;
