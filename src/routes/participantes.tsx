@@ -146,7 +146,17 @@ function ParticipantesPage() {
 }
 
 
-function SecaoDia({ titulo, grupos }: { titulo: string; grupos: OficinaAgrupada[] }) {
+function SecaoDia({
+  titulo,
+  grupos,
+  abertas,
+  onToggle,
+}: {
+  titulo: string;
+  grupos: OficinaAgrupada[];
+  abertas: Set<string>;
+  onToggle: (id: string) => void;
+}) {
   return (
     <section>
       <h2 className="mb-3 inline-flex items-center gap-2 text-lg font-bold tracking-tight text-foreground">
@@ -158,37 +168,55 @@ function SecaoDia({ titulo, grupos }: { titulo: string; grupos: OficinaAgrupada[
             Nenhuma oficina disponível.
           </p>
         )}
-        {grupos.map((g) => (
-          <article key={g.oficina_id} className="card-elevated p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h3 className="text-base font-semibold text-foreground">{g.titulo}</h3>
-                <p className="text-xs text-muted-foreground">Ministrante: {g.ministrante}</p>
-                {g.publico_alvo && (
-                  <span className="mt-2 inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                    {g.publico_alvo}
+        {grupos.map((g) => {
+          const aberta = abertas.has(g.oficina_id);
+          return (
+            <article key={g.oficina_id} className="card-elevated overflow-hidden">
+              <button
+                type="button"
+                onClick={() => onToggle(g.oficina_id)}
+                className="flex w-full items-center justify-between gap-3 p-5 text-left transition hover:bg-muted/30"
+              >
+                <div className="min-w-0">
+                  <h3 className="text-base font-semibold text-foreground">{g.titulo}</h3>
+                  <p className="text-xs text-muted-foreground">Ministrante: {g.ministrante}</p>
+                  {g.publico_alvo && (
+                    <span className="mt-2 inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                      {g.publico_alvo}
+                    </span>
+                  )}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+                    {g.nomes.length} {g.nomes.length === 1 ? "inscrito" : "inscritos"}
                   </span>
-                )}
-              </div>
-              <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
-                {g.nomes.length} {g.nomes.length === 1 ? "inscrito" : "inscritos"}
-              </span>
-            </div>
+                  {aberta ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+              </button>
 
-            {g.nomes.length === 0 ? (
-              <p className="mt-4 text-sm text-muted-foreground">Nenhum participante inscrito ainda.</p>
-            ) : (
-              <ol className="mt-4 grid gap-1 text-sm text-foreground sm:grid-cols-2">
-                {g.nomes.map((nome, i) => (
-                  <li key={i} className="flex gap-2 rounded-lg bg-muted/40 px-3 py-1.5">
-                    <span className="text-muted-foreground tabular-nums">{i + 1}.</span>
-                    <span className="truncate">{nome}</span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </article>
-        ))}
+              {aberta && (
+                <div className="border-t border-border px-5 pb-5">
+                  {g.nomes.length === 0 ? (
+                    <p className="pt-4 text-sm text-muted-foreground">Nenhum participante inscrito ainda.</p>
+                  ) : (
+                    <ol className="grid gap-1 pt-4 text-sm text-foreground sm:grid-cols-2">
+                      {g.nomes.map((nome, i) => (
+                        <li key={i} className="flex gap-2 rounded-lg bg-muted/40 px-3 py-1.5">
+                          <span className="text-muted-foreground tabular-nums">{i + 1}.</span>
+                          <span className="truncate">{nome}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </div>
+              )}
+            </article>
+          );
+        })}
       </div>
     </section>
   );
