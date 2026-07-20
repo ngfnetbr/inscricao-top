@@ -77,3 +77,20 @@ export async function consultarInscricaoPorCpf(cpf: string): Promise<ConsultaRes
   if (error) throw error;
   return data as unknown as ConsultaResultado;
 }
+
+export type ParticipantePublico = {
+  oficina_id: string;
+  dia: "quinta" | "sexta";
+  data: string;
+  titulo: string;
+  ministrante: string;
+  publico_alvo: string | null;
+  ordem: number;
+  nome: string | null;
+};
+
+export async function listarParticipantesPublico(): Promise<ParticipantePublico[]> {
+  const { data, error } = await supabase.rpc("listar_participantes_publico");
+  if (error) throw error;
+  return (data ?? []) as ParticipantePublico[];
+}
