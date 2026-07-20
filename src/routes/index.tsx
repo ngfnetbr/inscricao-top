@@ -288,6 +288,12 @@ function EtapaLanding({ onInscrever }: { onInscrever: () => void }) {
         >
           <Search className="h-5 w-5" /> Consultar minha inscrição
         </Link>
+        <Link
+          to="/participantes"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-4 text-base font-medium text-foreground shadow-sm hover:bg-muted"
+        >
+          <Users className="h-5 w-5" /> Ver participantes por oficina
+        </Link>
       </div>
     </section>
   );
