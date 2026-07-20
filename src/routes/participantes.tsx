@@ -76,15 +76,28 @@ function ParticipantesPage() {
   const quinta = grupos.filter((g) => g.dia === "quinta");
   const sexta = grupos.filter((g) => g.dia === "sexta");
 
+  function irPara(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border/60 bg-card/60 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Link>
+      <header className="sticky top-0 z-10 border-b border-border/60 bg-card/80 backdrop-blur">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 py-4">
+          <div className="flex items-center gap-2">
+            <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-4 w-4" /> Voltar
+            </Link>
+            <button
+              type="button"
+              onClick={() => irPara("dia-quinta")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:bg-muted"
+            >
+              <Calendar className="h-3.5 w-3.5 text-primary" /> Quinta
+            </button>
+          </div>
           <div className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Users className="h-4 w-4" /> Participantes por oficina
+            <Users className="h-4 w-4" /> Participantes
           </div>
         </div>
       </header>
@@ -98,15 +111,30 @@ function ParticipantesPage() {
 
         {!isLoading && (
           <>
-            <SecaoDia titulo="Quinta-feira, 23/07" grupos={quinta} />
-            <div className="h-6" />
-            <SecaoDia titulo="Sexta-feira, 24/07" grupos={sexta} />
+            <div id="dia-quinta" className="scroll-mt-24">
+              <SecaoDia titulo="Quinta-feira, 23/07" grupos={quinta} />
+            </div>
+
+            <div className="my-6 flex justify-center">
+              <button
+                type="button"
+                onClick={() => irPara("dia-sexta")}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground shadow-sm hover:bg-muted"
+              >
+                <Calendar className="h-3.5 w-3.5 text-primary" /> Ir para Sexta
+              </button>
+            </div>
+
+            <div id="dia-sexta" className="scroll-mt-24">
+              <SecaoDia titulo="Sexta-feira, 24/07" grupos={sexta} />
+            </div>
           </>
         )}
       </main>
     </div>
   );
 }
+
 
 function SecaoDia({ titulo, grupos }: { titulo: string; grupos: OficinaAgrupada[] }) {
   return (
