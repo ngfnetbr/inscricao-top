@@ -448,14 +448,17 @@ function EtapaOficinas(props: {
           </p>
         )}
         {oficinas.map((o) => {
-          const jaEscolhida = outraSelecionadaId === o.id;
+          const jaEscolhida =
+            !!outraSelecionada &&
+            (outraSelecionada.id === o.id ||
+              outraSelecionada.titulo.trim().toLowerCase() === o.titulo.trim().toLowerCase());
           return (
             <OficinaCard
               key={o.id}
               oficina={o}
               selecionada={selecionadaId === o.id}
               desabilitada={jaEscolhida}
-              motivoDesabilitada={jaEscolhida ? "Você já escolheu esta oficina na quinta-feira." : undefined}
+              motivoDesabilitada={jaEscolhida ? "Você já escolheu esta oficina no outro dia." : undefined}
               onSelecionar={() => onSelecionar(o.id)}
             />
           );
