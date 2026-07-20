@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, GraduationCap, Sparkles, Search, Printer } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, GraduationCap, Sparkles, Search, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -23,7 +23,6 @@ export const Route = createFileRoute("/")({
 type Etapa = 0 | 1 | 2 | 3 | 4 | 5;
 
 type Sucesso = {
-  protocolo: string;
   nome: string;
   cpf: string;
   oficinaQuinta: OficinaComVagas;
@@ -128,7 +127,6 @@ function InscricaoPage() {
 
       if (r.status === "sucesso") {
         setSucesso({
-          protocolo: r.protocolo,
           nome: r.nome,
           cpf,
           oficinaQuinta,
