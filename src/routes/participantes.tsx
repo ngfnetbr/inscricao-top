@@ -88,13 +88,22 @@ function ParticipantesPage() {
             <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-4 w-4" /> Voltar
             </Link>
-            <button
-              type="button"
-              onClick={() => irPara("dia-quinta")}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:bg-muted"
-            >
-              <Calendar className="h-3.5 w-3.5 text-primary" /> Quinta
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => irPara("dia-quinta")}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:bg-muted"
+              >
+                <Calendar className="h-3.5 w-3.5 text-primary" /> Quinta
+              </button>
+              <button
+                type="button"
+                onClick={() => irPara("dia-sexta")}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:bg-muted"
+              >
+                <Calendar className="h-3.5 w-3.5 text-primary" /> Sexta
+              </button>
+            </div>
           </div>
           <div className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
             <Users className="h-4 w-4" /> Participantes
