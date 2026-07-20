@@ -554,26 +554,20 @@ function RevisaoLinha({ rotulo, valor, sub }: { rotulo: string; valor: string; s
 /* ----------------------------- Etapa 5 - Sucesso ----------------------------- */
 
 function EtapaSucesso({ dados }: { dados: Sucesso }) {
-  function imprimir() {
-    window.print();
-  }
   return (
-    <section className="card-elevated p-6 sm:p-8 print:shadow-none print:border-0">
+    <section className="card-elevated p-6 sm:p-8">
       <div className="mb-4 flex items-center gap-3">
         <div className="brand-gradient flex h-12 w-12 items-center justify-center rounded-full text-primary-foreground shadow-sm">
           <CheckCircle2 className="h-6 w-6" />
         </div>
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Inscrição realizada com sucesso!</h2>
-          <p className="text-sm text-muted-foreground">Guarde seu comprovante abaixo.</p>
+          <p className="text-sm text-muted-foreground">Sua vaga foi garantida nas oficinas abaixo.</p>
         </div>
       </div>
 
       <div className="rounded-2xl border border-border bg-muted/30 p-5">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Protocolo</p>
-        <p className="mt-1 font-mono text-2xl font-bold tracking-wide text-foreground">{dados.protocolo}</p>
-
-        <dl className="mt-5 space-y-3 text-sm">
+        <dl className="space-y-3 text-sm">
           <div>
             <dt className="text-xs uppercase tracking-wider text-muted-foreground">Participante</dt>
             <dd className="font-semibold text-foreground">{dados.nome}</dd>
@@ -592,19 +586,13 @@ function EtapaSucesso({ dados }: { dados: Sucesso }) {
         </dl>
       </div>
 
-      <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-between print:hidden">
+      <div className="mt-6 flex justify-end">
         <a
           href="/"
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-3 text-sm font-medium text-foreground shadow-sm hover:bg-muted"
+          className="brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-95"
         >
           Finalizar
         </a>
-        <button
-          onClick={imprimir}
-          className="brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-95"
-        >
-          <Printer className="h-4 w-4" /> Salvar comprovante
-        </button>
       </div>
     </section>
   );
