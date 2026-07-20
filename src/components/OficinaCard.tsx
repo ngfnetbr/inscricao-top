@@ -52,23 +52,24 @@ export function OficinaCard({ oficina, selecionada, desabilitada, motivoDesabili
         {oficina.titulo}
       </h3>
 
-      <div className="mt-3 flex flex-col gap-1.5 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <UserCog className="h-4 w-4 shrink-0" />
-          <span>
-            <span className="text-foreground/80 font-medium">Ministrante:</span>{" "}
-            {oficina.ministrante}
-          </span>
-        </div>
-        {oficina.publico_alvo && (
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 shrink-0" />
-            <span>
-              <span className="text-foreground/80 font-medium">Público:</span>{" "}
-              {oficina.publico_alvo}
+      {oficina.publico_alvo && (
+        <div className="mt-3 flex items-start gap-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2">
+          <Users className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <div className="text-sm leading-snug">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-primary">
+              Público-alvo
             </span>
+            <span className="font-semibold text-foreground">{oficina.publico_alvo}</span>
           </div>
-        )}
+        </div>
+      )}
+
+      <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+        <UserCog className="h-4 w-4 shrink-0" />
+        <span>
+          <span className="text-foreground/80 font-medium">Ministrante:</span>{" "}
+          {oficina.ministrante}
+        </span>
       </div>
 
       <div className="mt-4 flex items-center justify-between">
