@@ -224,6 +224,7 @@ function InscricaoPage() {
             oficinas={oficinasQuinta}
             selecionadaId={oficinaQuintaId}
             outraSelecionadaId={oficinaSextaId}
+            outraOficina={oficinaSexta}
             onSelecionar={(id) => setOficinaQuintaId(id)}
             avancar={() => setEtapa(3)}
             voltar={() => setEtapa(1)}
@@ -236,6 +237,7 @@ function InscricaoPage() {
             oficinas={oficinasSexta}
             selecionadaId={oficinaSextaId}
             outraSelecionadaId={oficinaQuintaId}
+            outraOficina={oficinaQuinta}
             onSelecionar={(id) => setOficinaSextaId(id)}
             avancar={() => setEtapa(4)}
             voltar={() => setEtapa(2)}
@@ -430,11 +432,14 @@ function EtapaOficinas(props: {
   oficinas: OficinaComVagas[];
   selecionadaId: string | null;
   outraSelecionadaId: string | null;
+  outraOficina?: OficinaComVagas | null;
   onSelecionar: (id: string) => void;
   voltar: () => void;
   avancar: () => void;
 }) {
-  const { titulo, oficinas, selecionadaId, outraSelecionadaId, onSelecionar, voltar, avancar } = props;
+  const { titulo, oficinas, selecionadaId, outraSelecionadaId, outraOficina, onSelecionar, voltar, avancar } = props;
+  const outraSelecionada =
+    oficinas.find((o) => o.id === outraSelecionadaId) ?? outraOficina ?? null;
 
   return (
     <section>
@@ -448,14 +453,17 @@ function EtapaOficinas(props: {
           </p>
         )}
         {oficinas.map((o) => {
-          const jaEscolhida = outraSelecionadaId === o.id;
+          const jaEscolhida =
+            !!outraSelecionada &&
+            (outraSelecionada.id === o.id ||
+              outraSelecionada.titulo.trim().toLowerCase() === o.titulo.trim().toLowerCase());
           return (
             <OficinaCard
               key={o.id}
               oficina={o}
               selecionada={selecionadaId === o.id}
               desabilitada={jaEscolhida}
-              motivoDesabilitada={jaEscolhida ? "Você já escolheu esta oficina na quinta-feira." : undefined}
+              motivoDesabilitada={jaEscolhida ? "Você já escolheu esta oficina no outro dia." : undefined}
               onSelecionar={() => onSelecionar(o.id)}
             />
           );
