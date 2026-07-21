@@ -367,8 +367,24 @@ function PainelCertificado() {
                 </button>
               </div>
             </div>
+            {bulkData && bulkData.length > 0 && (
+              <div className="card-elevated mt-4 p-4">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nome ou CPF..."
+                    value={bulkQuery}
+                    onChange={(e) => setBulkQuery(e.target.value)}
+                    className="h-11 w-full rounded-xl border border-input bg-background pl-10 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+                  />
+                </div>
+              </div>
+            )}
           </section>
         )}
+
+
 
         {/* holder off-screen usado por baixarTodosPdf */}
         <div
