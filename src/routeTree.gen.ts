@@ -11,9 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ParticipantesRouteImport } from './routes/participantes'
 import { Route as ConsultarRouteImport } from './routes/consultar'
-import { Route as ChamadaRouteImport } from './routes/chamada'
 import { Route as CertificadoRouteImport } from './routes/certificado'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ChamadaIndexRouteImport } from './routes/chamada.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ChamadaOficinaIdRouteImport } from './routes/chamada.$oficinaId'
 import { Route as AdminPessoasRouteImport } from './routes/admin.pessoas'
@@ -29,11 +29,6 @@ const ConsultarRoute = ConsultarRouteImport.update({
   path: '/consultar',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChamadaRoute = ChamadaRouteImport.update({
-  id: '/chamada',
-  path: '/chamada',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CertificadoRoute = CertificadoRouteImport.update({
   id: '/certificado',
   path: '/certificado',
@@ -44,15 +39,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChamadaIndexRoute = ChamadaIndexRouteImport.update({
+  id: '/chamada/',
+  path: '/chamada/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChamadaOficinaIdRoute = ChamadaOficinaIdRouteImport.update({
-  id: '/$oficinaId',
-  path: '/$oficinaId',
-  getParentRoute: () => ChamadaRoute,
+  id: '/chamada/$oficinaId',
+  path: '/chamada/$oficinaId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminPessoasRoute = AdminPessoasRouteImport.update({
   id: '/admin/pessoas',
@@ -68,82 +68,83 @@ const AdminGestoresRoute = AdminGestoresRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/certificado': typeof CertificadoRoute
-  '/chamada': typeof ChamadaRouteWithChildren
   '/consultar': typeof ConsultarRoute
   '/participantes': typeof ParticipantesRoute
   '/admin/gestores': typeof AdminGestoresRoute
   '/admin/pessoas': typeof AdminPessoasRoute
   '/chamada/$oficinaId': typeof ChamadaOficinaIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/chamada/': typeof ChamadaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/certificado': typeof CertificadoRoute
-  '/chamada': typeof ChamadaRouteWithChildren
   '/consultar': typeof ConsultarRoute
   '/participantes': typeof ParticipantesRoute
   '/admin/gestores': typeof AdminGestoresRoute
   '/admin/pessoas': typeof AdminPessoasRoute
   '/chamada/$oficinaId': typeof ChamadaOficinaIdRoute
   '/admin': typeof AdminIndexRoute
+  '/chamada': typeof ChamadaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/certificado': typeof CertificadoRoute
-  '/chamada': typeof ChamadaRouteWithChildren
   '/consultar': typeof ConsultarRoute
   '/participantes': typeof ParticipantesRoute
   '/admin/gestores': typeof AdminGestoresRoute
   '/admin/pessoas': typeof AdminPessoasRoute
   '/chamada/$oficinaId': typeof ChamadaOficinaIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/chamada/': typeof ChamadaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/certificado'
-    | '/chamada'
     | '/consultar'
     | '/participantes'
     | '/admin/gestores'
     | '/admin/pessoas'
     | '/chamada/$oficinaId'
     | '/admin/'
+    | '/chamada/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/certificado'
-    | '/chamada'
     | '/consultar'
     | '/participantes'
     | '/admin/gestores'
     | '/admin/pessoas'
     | '/chamada/$oficinaId'
     | '/admin'
+    | '/chamada'
   id:
     | '__root__'
     | '/'
     | '/certificado'
-    | '/chamada'
     | '/consultar'
     | '/participantes'
     | '/admin/gestores'
     | '/admin/pessoas'
     | '/chamada/$oficinaId'
     | '/admin/'
+    | '/chamada/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CertificadoRoute: typeof CertificadoRoute
-  ChamadaRoute: typeof ChamadaRouteWithChildren
   ConsultarRoute: typeof ConsultarRoute
   ParticipantesRoute: typeof ParticipantesRoute
   AdminGestoresRoute: typeof AdminGestoresRoute
   AdminPessoasRoute: typeof AdminPessoasRoute
+  ChamadaOficinaIdRoute: typeof ChamadaOficinaIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  ChamadaIndexRoute: typeof ChamadaIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -162,13 +163,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsultarRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/chamada': {
-      id: '/chamada'
-      path: '/chamada'
-      fullPath: '/chamada'
-      preLoaderRoute: typeof ChamadaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/certificado': {
       id: '/certificado'
       path: '/certificado'
@@ -183,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chamada/': {
+      id: '/chamada/'
+      path: '/chamada'
+      fullPath: '/chamada/'
+      preLoaderRoute: typeof ChamadaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -192,10 +193,10 @@ declare module '@tanstack/react-router' {
     }
     '/chamada/$oficinaId': {
       id: '/chamada/$oficinaId'
-      path: '/$oficinaId'
+      path: '/chamada/$oficinaId'
       fullPath: '/chamada/$oficinaId'
       preLoaderRoute: typeof ChamadaOficinaIdRouteImport
-      parentRoute: typeof ChamadaRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/pessoas': {
       id: '/admin/pessoas'
@@ -214,26 +215,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface ChamadaRouteChildren {
-  ChamadaOficinaIdRoute: typeof ChamadaOficinaIdRoute
-}
-
-const ChamadaRouteChildren: ChamadaRouteChildren = {
-  ChamadaOficinaIdRoute: ChamadaOficinaIdRoute,
-}
-
-const ChamadaRouteWithChildren =
-  ChamadaRoute._addFileChildren(ChamadaRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CertificadoRoute: CertificadoRoute,
-  ChamadaRoute: ChamadaRouteWithChildren,
   ConsultarRoute: ConsultarRoute,
   ParticipantesRoute: ParticipantesRoute,
   AdminGestoresRoute: AdminGestoresRoute,
   AdminPessoasRoute: AdminPessoasRoute,
+  ChamadaOficinaIdRoute: ChamadaOficinaIdRoute,
   AdminIndexRoute: AdminIndexRoute,
+  ChamadaIndexRoute: ChamadaIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
