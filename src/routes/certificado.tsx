@@ -68,6 +68,7 @@ function PainelCertificado() {
   const [bulkData, setBulkData] = useState<CertData[] | null>(null);
   const [bulkQuery, setBulkQuery] = useState("");
   const [downloading, setDownloading] = useState<{ atual: number; total: number } | null>(null);
+  const [singleDownloading, setSingleDownloading] = useState<string | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
 
   async function buscar(valor: string) {
