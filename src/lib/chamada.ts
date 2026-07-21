@@ -43,8 +43,8 @@ export async function marcarPresenca(params: {
   const { data, error } = await supabase.rpc("marcar_presenca", {
     _inscricao_id: params.inscricaoId,
     _oficina_id: params.oficinaId,
-    _manha: params.manha,
-    _tarde: params.tarde,
+    _manha: params.manha as unknown as boolean,
+    _tarde: params.tarde as unknown as boolean,
   });
   if (error) throw error;
   return data as { status: string; horas?: number };
