@@ -374,7 +374,7 @@ function Certificado({
   oficinas: { titulo: string; horas: number }[];
   totalHoras: number;
 }) {
-  const nomeExibicao = abreviarNome(nome, 28);
+  const nomeExibicao = abreviarNome(nome, 32);
   const umaOficina = oficinas.length === 1;
 
   return (
@@ -419,26 +419,27 @@ function Certificado({
         }
         .cert-overlay {
           position: absolute;
-          top: 32%;
-          left: 8%;
-          width: 42%;
+          top: 38%;
+          left: 10%;
+          width: 80%;
+          text-align: center;
           color: #111;
           font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
         }
-        .cert-intro { font-size: 22px; margin: 0; color: #222; }
+        .cert-intro { font-size: 16px; margin: 0; color: #222; }
         .cert-nome {
-          font-size: 32px; font-weight: 800;
-          margin: 4px 0 2px 0; line-height: 1.1;
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          font-size: 24px; font-weight: 800;
+          margin: 4px 0 2px 0; line-height: 1.15;
         }
-        .cert-cpf { font-size: 18px; margin: 0 0 22px 0; color: #222; }
-        .cert-body { font-size: 20px; margin: 0 0 8px 0; }
+        .cert-cpf { font-size: 13px; margin: 0 0 16px 0; color: #222; }
+        .cert-body { font-size: 14px; margin: 0 0 6px 0; }
         .cert-lista {
-          list-style: disc; padding-left: 22px;
-          margin: 0 0 14px 0; font-size: 18px; line-height: 1.4;
+          list-style: none; padding: 0;
+          margin: 0 auto 10px auto; font-size: 14px; line-height: 1.4;
+          max-width: 640px;
         }
-        .cert-lista li { margin-bottom: 4px; }
-        .cert-total { font-size: 18px; margin: 0; line-height: 1.45; }
+        .cert-lista li { margin-bottom: 3px; }
+        .cert-total { font-size: 13px; margin: 0; line-height: 1.45; }
 
         @media print {
           .certificado-page {
