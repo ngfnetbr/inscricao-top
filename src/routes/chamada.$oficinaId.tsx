@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Loader2, Save, Search } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Save, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -49,12 +49,13 @@ function ChamadaOficina() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email, oficinaId]);
 
-  async function alternar(item: ChamadaItem, campo: "manha" | "tarde", valor: boolean) {
+  async function alterar(item: ChamadaItem, campo: "manha" | "tarde", valor: boolean | null) {
     const novo = { ...item, [campo]: valor };
-    novo.horas = (novo.manha ? 4 : 0) + (novo.tarde ? 4 : 0);
+    novo.horas = (novo.manha === true ? 4 : 0) + (novo.tarde === true ? 4 : 0);
     setItens((prev) => prev.map((i) => (i.inscricao_id === item.inscricao_id ? novo : i)));
     setSalvando(item.inscricao_id);
-    const loadingId = toast.loading(`Salvando ${campo === "manha" ? "manhã" : "tarde"} — ${item.nome}...`);
+    const rotulo = campo === "manha" ? "manhã" : "tarde";
+    const loadingId = toast.loading(`Salvando ${rotulo} — ${item.nome}...`);
     try {
       const res = await marcarPresenca({
         inscricaoId: item.inscricao_id,
@@ -63,12 +64,11 @@ function ChamadaOficina() {
         tarde: novo.tarde,
       });
       if (res.status !== "sucesso") throw new Error(res.status);
-      const acao = valor ? "presente" : "sem presença";
-      toast.success(`${item.nome}: ${campo === "manha" ? "manhã" : "tarde"} marcada como ${acao}.`, { id: loadingId });
+      const acao = valor === true ? "presente" : valor === false ? "falta" : "sem marcação";
+      toast.success(`${item.nome}: ${rotulo} — ${acao}.`, { id: loadingId });
     } catch (e) {
       console.error(e);
       toast.error(`Não foi possível salvar a presença de ${item.nome}.`, { id: loadingId });
-      // reverter
       setItens((prev) => prev.map((i) => (i.inscricao_id === item.inscricao_id ? item : i)));
     } finally {
       setSalvando(null);
@@ -84,14 +84,14 @@ function ChamadaOficina() {
   }, [filtro, itens]);
 
   const totais = useMemo(() => {
-    let m = 0, t = 0, ambos = 0, faltas = 0;
+    let presentes = 0, faltas = 0, pendentes = 0, concluidos = 0;
     for (const i of itens) {
-      if (i.manha) m++;
-      if (i.tarde) t++;
-      if (i.manha && i.tarde) ambos++;
-      if (!i.manha && !i.tarde) faltas++;
+      if (i.manha === true || i.tarde === true) presentes++;
+      if (i.manha === false || i.tarde === false) faltas++;
+      if (i.manha === null && i.tarde === null) pendentes++;
+      if (i.manha === true && i.tarde === true) concluidos++;
     }
-    return { m, t, ambos, faltas };
+    return { presentes, faltas, pendentes, concluidos };
   }, [itens]);
 
   return (
@@ -116,10 +116,10 @@ function ChamadaOficina() {
 
       <main className="mx-auto max-w-4xl px-4 py-6">
         <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <StatBox label="Manhã" valor={totais.m} />
-          <StatBox label="Tarde" valor={totais.t} />
-          <StatBox label="8h (ambos)" valor={totais.ambos} tone="success" />
+          <StatBox label="Presenças" valor={totais.presentes} tone="success" />
           <StatBox label="Faltas" valor={totais.faltas} tone="danger" />
+          <StatBox label="Pendentes" valor={totais.pendentes} />
+          <StatBox label="8h (ambos)" valor={totais.concluidos} tone="success" />
         </div>
 
         <div className="mb-3 flex items-center gap-2">
@@ -143,23 +143,23 @@ function ChamadaOficina() {
         ) : (
           <ul className="card-elevated divide-y divide-border overflow-hidden">
             {itensFiltrados.map((i) => (
-              <li key={i.inscricao_id} className="flex flex-wrap items-center gap-3 p-3 sm:flex-nowrap">
+              <li key={i.inscricao_id} className="flex flex-col gap-3 p-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">{i.nome}</p>
                   <p className="text-xs text-muted-foreground">{formatarCpf(i.cpf)}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckPresenca
+                <div className="flex flex-wrap items-center gap-3">
+                  <TurnoControle
                     label="Manhã"
-                    checked={i.manha}
+                    valor={i.manha}
                     disabled={salvando === i.inscricao_id}
-                    onChange={(v) => alternar(i, "manha", v)}
+                    onChange={(v) => alterar(i, "manha", v)}
                   />
-                  <CheckPresenca
+                  <TurnoControle
                     label="Tarde"
-                    checked={i.tarde}
+                    valor={i.tarde}
                     disabled={salvando === i.inscricao_id}
-                    onChange={(v) => alternar(i, "tarde", v)}
+                    onChange={(v) => alterar(i, "tarde", v)}
                   />
                   <span
                     className={[
@@ -182,7 +182,7 @@ function ChamadaOficina() {
 
         <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
           <Save className="h-3.5 w-3.5" />
-          As presenças são salvas automaticamente ao marcar.
+          As presenças e faltas são salvas automaticamente ao marcar. Clique novamente para limpar.
         </p>
       </main>
     </div>
@@ -200,35 +200,54 @@ function StatBox({ label, valor, tone }: { label: string; valor: number; tone?: 
   );
 }
 
-function CheckPresenca({
+function TurnoControle({
   label,
-  checked,
+  valor,
   disabled,
   onChange,
 }: {
   label: string;
-  checked: boolean;
+  valor: boolean | null;
   disabled?: boolean;
-  onChange: (v: boolean) => void;
+  onChange: (v: boolean | null) => void;
 }) {
   return (
-    <label
-      className={[
-        "flex cursor-pointer select-none items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition",
-        checked
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-card text-foreground hover:bg-muted",
-        disabled ? "opacity-60" : "",
-      ].join(" ")}
-    >
-      <input
-        type="checkbox"
-        className="sr-only"
-        checked={checked}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      {label}
-    </label>
+    <div className="flex items-center gap-1.5">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <div className="inline-flex overflow-hidden rounded-lg border border-border">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(valor === true ? null : true)}
+          aria-pressed={valor === true}
+          title={valor === true ? "Desmarcar presença" : "Marcar presente"}
+          className={[
+            "inline-flex h-8 w-9 items-center justify-center text-xs font-semibold transition",
+            valor === true
+              ? "bg-success text-success-foreground"
+              : "bg-card text-muted-foreground hover:bg-muted",
+            disabled ? "opacity-60" : "",
+          ].join(" ")}
+        >
+          <Check className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(valor === false ? null : false)}
+          aria-pressed={valor === false}
+          title={valor === false ? "Desmarcar falta" : "Marcar falta"}
+          className={[
+            "inline-flex h-8 w-9 items-center justify-center border-l border-border text-xs font-semibold transition",
+            valor === false
+              ? "bg-destructive text-destructive-foreground"
+              : "bg-card text-muted-foreground hover:bg-muted",
+            disabled ? "opacity-60" : "",
+          ].join(" ")}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
   );
 }
