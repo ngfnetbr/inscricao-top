@@ -1,6 +1,5 @@
 import { CheckCircle2, Users, UserCog, Lock } from "lucide-react";
 import type { OficinaComVagas } from "@/lib/oficinas";
-import { textoVagas } from "@/lib/format";
 
 type Props = {
   oficina: OficinaComVagas;
@@ -11,20 +10,17 @@ type Props = {
 };
 
 export function OficinaCard({ oficina, selecionada, desabilitada, motivoDesabilitada, onSelecionar }: Props) {
-  const lotada = oficina.lotada || oficina.vagas_disponiveis <= 0;
+  const limiteVagas = Math.max(0, Number(oficina.limite_vagas ?? 0));
+  const inscritos = Math.max(0, Number(oficina.inscritos ?? 0));
+  const vagasDisponiveis = Math.max(0, limiteVagas - inscritos);
+  const lotada = oficina.lotada || vagasDisponiveis <= 0 || inscritos >= limiteVagas;
   const bloqueada = desabilitada || lotada;
 
-  const vagasTexto = lotada
-    ? "Oficina lotada"
-    : textoVagas(oficina.vagas_disponiveis, false);
-
-  const vagasCor = lotada
-    ? "text-destructive"
-    : oficina.vagas_disponiveis === 1
-      ? "text-warning-foreground bg-warning/25 px-2 py-0.5 rounded-full"
-      : oficina.vagas_disponiveis <= 5
-        ? "text-warning-foreground bg-warning/20 px-2 py-0.5 rounded-full"
-        : "text-success";
+  const ocupacaoCor = lotada
+    ? "border-destructive/30 bg-destructive/10 text-destructive"
+    : vagasDisponiveis <= 5
+      ? "border-warning/40 bg-warning/20 text-warning-foreground"
+      : "border-success/30 bg-success/10 text-success";
 
   return (
     <button
@@ -72,8 +68,13 @@ export function OficinaCard({ oficina, selecionada, desabilitada, motivoDesabili
         </span>
       </div>
 
-      <div className="mt-4 flex items-center justify-between">
-        <span className={`text-sm font-semibold ${vagasCor}`}>{vagasTexto}</span>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+        <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-bold ${ocupacaoCor}`}>
+          <span>{inscritos}/{limiteVagas}</span>
+          <span className="text-xs font-black uppercase">
+            {lotada ? "Esgotado" : `${vagasDisponiveis} vaga${vagasDisponiveis === 1 ? "" : "s"}`}
+          </span>
+        </div>
         {desabilitada && !lotada && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <Lock className="h-3 w-3" />
