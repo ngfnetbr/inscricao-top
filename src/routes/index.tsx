@@ -172,7 +172,7 @@ function InscricaoPage() {
 
 
 
-      <main className="mx-auto max-w-3xl px-4 py-6 pb-24">
+      <main className="mx-auto max-w-3xl px-3 py-4 pb-20 sm:px-4 sm:py-6 sm:pb-24">
         {etapa >= 1 && etapa < 5 && (
           <div className="mb-6">
             <StepBar atual={etapa} total={4} labels={labels.slice(0, 4)} />
@@ -249,41 +249,40 @@ function InscricaoPage() {
 
 function EtapaLanding({ onInscrever }: { onInscrever: () => void }) {
   return (
-    <section className="card-elevated p-6 sm:p-10 text-center">
+    <section className="card-elevated p-4 text-center sm:p-10">
       <img
         src={logoConversas.url}
         alt="Conversas Pedagógicas — Rede Municipal de Educação de Nova Londrina"
-        className="mx-auto mb-6 w-full max-w-md"
+        className="mx-auto mb-4 w-full max-w-xs sm:mb-6 sm:max-w-md"
       />
-      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+      <p className="mx-auto mt-1 max-w-md text-xs text-muted-foreground sm:mt-2 sm:text-sm">
         Escolha uma oficina para cada dia (23 e 24 de julho) e garanta sua vaga.
       </p>
 
-
-      <div className="mx-auto mt-8 flex max-w-md flex-col gap-3">
+      <div className="mx-auto mt-5 flex max-w-md flex-col gap-2.5 sm:mt-8 sm:gap-3">
         <button
           onClick={onInscrever}
-          className="brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-semibold text-primary-foreground shadow-sm hover:opacity-95"
+          className="brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-95 sm:px-6 sm:py-4 sm:text-base"
         >
-          <Sparkles className="h-5 w-5" /> Inscreva-se agora
+          <Sparkles className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" /> Inscreva-se agora
         </button>
         <Link
           to="/consultar"
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-4 text-base font-medium text-foreground shadow-sm hover:bg-muted"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3.5 text-sm font-medium text-foreground shadow-sm hover:bg-muted sm:px-6 sm:py-4 sm:text-base"
         >
-          <Search className="h-5 w-5" /> Consultar minha inscrição
+          <Search className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" /> Consultar minha inscrição
         </Link>
         <Link
           to="/participantes"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-4 text-base font-medium text-foreground shadow-sm hover:bg-muted"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3.5 text-sm font-medium text-foreground shadow-sm hover:bg-muted sm:px-6 sm:py-4 sm:text-base"
         >
-          <Users className="h-5 w-5" /> Ver participantes por oficina
+          <Users className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" /> Ver participantes por oficina
         </Link>
       </div>
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-6 flex justify-center sm:mt-8">
         <Link
           to="/admin"
           className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground"
