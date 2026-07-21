@@ -235,18 +235,21 @@ export type Database = {
         Row: {
           criado_em: string
           id: string
+          nome: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           criado_em?: string
           id?: string
+          nome?: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           criado_em?: string
           id?: string
+          nome?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
@@ -286,6 +289,7 @@ export type Database = {
         Args: never
         Returns: {
           email: string
+          nome: string
           oficinas: Json
           user_id: string
         }[]
