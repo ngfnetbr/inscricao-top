@@ -1,15 +1,38 @@
 import { jsPDF } from "jspdf";
 import { formatarCpf } from "./format";
 import type { OficinaComVagas } from "./oficinas";
+import logoConversas from "@/assets/conversas-pedagogicas.png.asset.json";
 
 type Inscricao = { id: string; nome: string; cpf: string };
 
 const DIA_LABEL: Record<string, string> = {
-  quinta: "Quinta-feira 23/07",
-  sexta: "Sexta-feira 24/07",
+  quinta: "Quinta-feira, 23/07",
+  sexta: "Sexta-feira, 24/07",
 };
 
-export function gerarPdfOficinas(
+async function carregarLogo(url: string): Promise<{ data: string; w: number; h: number } | null> {
+  try {
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    const dataUrl: string = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result as string);
+      r.onerror = rej;
+      r.readAsDataURL(blob);
+    });
+    const dims: { w: number; h: number } = await new Promise((res, rej) => {
+      const img = new Image();
+      img.onload = () => res({ w: img.naturalWidth, h: img.naturalHeight });
+      img.onerror = rej;
+      img.src = dataUrl;
+    });
+    return { data: dataUrl, ...dims };
+  } catch {
+    return null;
+  }
+}
+
+export async function gerarPdfOficinas(
   oficinas: OficinaComVagas[],
   participantesPorOficina: Map<string, Inscricao[]>,
 ) {
@@ -17,7 +40,6 @@ export function gerarPdfOficinas(
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const margin = 40;
-  let y = margin;
 
   const ativas = oficinas
     .filter((o) => o.ativa)
@@ -26,90 +48,108 @@ export function gerarPdfOficinas(
       return (a.ordem ?? 0) - (b.ordem ?? 0) || a.titulo.localeCompare(b.titulo, "pt-BR");
     });
 
-  function ensure(space: number) {
-    if (y + space > pageH - margin) {
-      doc.addPage();
-      y = margin;
-    }
-  }
+  const logo = await carregarLogo(logoConversas.url);
 
-  // Título
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("Oficinas e Participantes", margin, y);
-  y += 18;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(120);
-  doc.text(
-    `Gerado em ${new Date().toLocaleString("pt-BR")}`,
-    margin,
-    y,
-  );
-  doc.setTextColor(0);
-  y += 20;
+  ativas.forEach((o, idx) => {
+    if (idx > 0) doc.addPage();
+    let y = margin;
 
-  let diaAtual = "";
-  for (const o of ativas) {
-    if (o.dia !== diaAtual) {
-      diaAtual = o.dia;
-      ensure(40);
-      y += 6;
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(13);
-      doc.text(DIA_LABEL[o.dia] ?? o.dia, margin, y);
-      y += 14;
-      doc.setDrawColor(200);
-      doc.line(margin, y, pageW - margin, y);
-      y += 12;
+    // Logo centralizado
+    if (logo) {
+      const maxW = 200;
+      const maxH = 90;
+      const ratio = Math.min(maxW / logo.w, maxH / logo.h);
+      const w = logo.w * ratio;
+      const h = logo.h * ratio;
+      doc.addImage(logo.data, "PNG", (pageW - w) / 2, y, w, h);
+      y += h + 16;
     }
 
-    const participantes = participantesPorOficina.get(o.id) ?? [];
-    ensure(60);
-
-    // Cabeçalho da oficina
+    // Dia (badge acima)
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    const tituloLinhas = doc.splitTextToSize(o.titulo, pageW - margin * 2);
-    doc.text(tituloLinhas, margin, y);
-    y += tituloLinhas.length * 13;
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
     doc.setTextColor(90);
-    const meta = `Ministrante: ${o.ministrante} · Público-alvo: ${o.publico_alvo} · Inscritos: ${participantes.length}/${o.limite_vagas}`;
-    const metaLinhas = doc.splitTextToSize(meta, pageW - margin * 2);
-    doc.text(metaLinhas, margin, y);
-    y += metaLinhas.length * 11 + 6;
-    doc.setTextColor(0);
+    doc.text((DIA_LABEL[o.dia] ?? o.dia).toUpperCase(), pageW / 2, y, { align: "center" });
+    y += 16;
+
+    // Título oficina
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.setTextColor(20);
+    const tituloLinhas = doc.splitTextToSize(o.titulo, pageW - margin * 2);
+    doc.text(tituloLinhas, pageW / 2, y, { align: "center" });
+    y += tituloLinhas.length * 18;
+
+    // Ministrante
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(80);
+    doc.text(`Ministrante: ${o.ministrante}`, pageW / 2, y, { align: "center" });
+    y += 14;
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(`Público-alvo: ${o.publico_alvo}`, pageW / 2, y, { align: "center" });
+    y += 20;
+
+    // Linha divisória
+    doc.setDrawColor(210);
+    doc.line(margin, y, pageW - margin, y);
+    y += 16;
+
+    // Cabeçalho lista
+    const participantes = participantesPorOficina.get(o.id) ?? [];
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(20);
+    doc.text(
+      `Participantes (${participantes.length}/${o.limite_vagas})`,
+      margin,
+      y,
+    );
+    y += 16;
 
     // Lista
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
+    doc.setTextColor(30);
+
+    function ensure(space: number) {
+      if (y + space > pageH - margin - 20) {
+        doc.addPage();
+        y = margin;
+      }
+    }
+
     if (participantes.length === 0) {
-      ensure(14);
       doc.setTextColor(140);
-      doc.text("— sem inscritos —", margin + 10, y);
-      doc.setTextColor(0);
-      y += 14;
+      doc.text("— sem inscritos —", margin + 6, y);
+      doc.setTextColor(30);
     } else {
-      participantes.forEach((p, idx) => {
+      participantes.forEach((p, i) => {
         ensure(14);
-        const linha = `${String(idx + 1).padStart(2, "0")}. ${p.nome}   —   ${formatarCpf(p.cpf)}`;
-        doc.text(linha, margin + 10, y);
-        y += 13;
+        const num = String(i + 1).padStart(2, "0");
+        doc.text(`${num}.  ${p.nome}`, margin + 6, y);
+        doc.setTextColor(120);
+        doc.text(formatarCpf(p.cpf), pageW - margin, y, { align: "right" });
+        doc.setTextColor(30);
+        y += 14;
       });
     }
-    y += 10;
-  }
+  });
 
-  // Rodapé com paginação
+  // Rodapé
   const total = doc.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.setTextColor(140);
+    doc.setTextColor(150);
     doc.text(`Página ${i} de ${total}`, pageW - margin, pageH - 20, { align: "right" });
+    doc.text(
+      `Gerado em ${new Date().toLocaleString("pt-BR")}`,
+      margin,
+      pageH - 20,
+    );
     doc.setTextColor(0);
   }
 
