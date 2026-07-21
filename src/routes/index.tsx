@@ -494,12 +494,14 @@ function EtapaOficinas(props: {
 
   return (
     <section>
-      {badge && (
-        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide shadow-sm ${badgeClasses}`}>
-          {badge}
-        </span>
-      )}
-      <h2 className="mt-2 text-xl font-bold tracking-tight text-foreground sm:text-2xl">{titulo}</h2>
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">{titulo}</h2>
+        {badge && (
+          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide shadow-sm ${badgeClasses}`}>
+            {badge}
+          </span>
+        )}
+      </div>
       <p className="mt-1 text-sm text-muted-foreground">Toque no cartão para selecionar uma oficina.</p>
 
 
