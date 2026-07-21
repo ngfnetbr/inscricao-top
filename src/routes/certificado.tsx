@@ -293,26 +293,50 @@ function PainelCertificado() {
                       : ""}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={carregarTodos}
-                  disabled={bulkLoading}
+                  disabled={bulkLoading || !!downloading}
                   className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted disabled:opacity-50"
                 >
                   <Loader2 className={`h-4 w-4 ${bulkLoading ? "animate-spin" : "hidden"}`} />
                   Recarregar
                 </button>
                 <button
-                  onClick={() => window.print()}
-                  disabled={!bulkData || bulkData.length === 0}
+                  onClick={baixarTodosPdf}
+                  disabled={!bulkData || bulkData.length === 0 || !!downloading}
                   className="brand-gradient inline-flex items-center gap-2 rounded-xl px-6 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
                 >
-                  <Printer className="h-4 w-4" /> Imprimir todos / Salvar PDF
+                  {downloading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Baixando {downloading.atual}/{downloading.total}...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" /> Baixar todos (PDFs)
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  disabled={!bulkData || bulkData.length === 0 || !!downloading}
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted disabled:opacity-50"
+                >
+                  <Printer className="h-4 w-4" /> Imprimir
                 </button>
               </div>
             </div>
           </section>
         )}
+
+        {/* holder off-screen usado por baixarTodosPdf */}
+        <div
+          ref={captureRef}
+          aria-hidden
+          style={{ position: "fixed", left: "-10000px", top: 0, pointerEvents: "none" }}
+        />
+
 
         {bulk && bulkData && (
           <div className="cert-print-area mt-4 space-y-6 print:mt-0 print:space-y-0">
