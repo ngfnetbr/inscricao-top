@@ -332,13 +332,16 @@ export type Database = {
       listar_minhas_oficinas: {
         Args: never
         Returns: {
+          chamadas_feitas: number
           data: string
           dia: string
           id: string
           limite_vagas: number
           ministrante: string
+          pendentes: number
           publico_alvo: string
           titulo: string
+          total_inscritos: number
         }[]
       }
       listar_participantes_publico: {
