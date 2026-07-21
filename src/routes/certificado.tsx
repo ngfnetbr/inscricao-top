@@ -66,6 +66,7 @@ function PainelCertificado() {
 
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkData, setBulkData] = useState<CertData[] | null>(null);
+  const [bulkQuery, setBulkQuery] = useState("");
   const [downloading, setDownloading] = useState<{ atual: number; total: number } | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
 
@@ -153,20 +154,33 @@ function PainelCertificado() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bulk]);
 
+  const bulkFiltered = useMemo(() => {
+    if (!bulkData) return null;
+    const q = bulkQuery.trim().toLowerCase();
+    if (!q) return bulkData;
+    const qDigits = q.replace(/\D/g, "");
+    return bulkData.filter((c) => {
+      const nomeMatch = c.nome.toLowerCase().includes(q);
+      const cpfMatch = qDigits.length > 0 && (c.cpf || "").replace(/\D/g, "").includes(qDigits);
+      return nomeMatch || cpfMatch;
+    });
+  }, [bulkData, bulkQuery]);
+
   async function baixarTodosPdf() {
-    if (!bulkData || bulkData.length === 0) {
+    const lista = bulkFiltered ?? [];
+    if (lista.length === 0) {
       toast.error("Nenhum certificado carregado.");
       return;
     }
-    setDownloading({ atual: 0, total: bulkData.length });
+    setDownloading({ atual: 0, total: lista.length });
     const holder = document.createElement("div");
     holder.style.cssText = "position:fixed;left:-10000px;top:0;pointer-events:none;";
     document.body.appendChild(holder);
     const { renderCertificadoOffscreen } = await import("@/lib/certificado-render");
     try {
-      for (let i = 0; i < bulkData.length; i++) {
-        const c = bulkData[i];
-        setDownloading({ atual: i + 1, total: bulkData.length });
+      for (let i = 0; i < lista.length; i++) {
+        const c = lista[i];
+        setDownloading({ atual: i + 1, total: lista.length });
         const node = renderCertificadoOffscreen(holder, c, certificadoBase.url);
         // aguardar imagem carregar
         const img = node.querySelector("img");
@@ -206,12 +220,11 @@ function PainelCertificado() {
         const pageH = pdf.internal.pageSize.getHeight();
         pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, pageH);
         const cpfLimpo = (c.cpf || "").replace(/\D/g, "");
-        const nomeLimpo = c.nome.replace(/[\\/:*?"<>|]/g, "").trim();
-        pdf.save(`${nomeLimpo} ${cpfLimpo}.pdf`);
+        pdf.save(`${cpfLimpo}.pdf`);
         node.remove();
         await new Promise((r) => setTimeout(r, 30));
       }
-      toast.success(`${bulkData.length} certificado(s) baixado(s).`);
+      toast.success(`${lista.length} certificado(s) baixado(s).`);
     } catch (e) {
       console.error(e);
       toast.error("Falha ao gerar PDFs em lote.");
@@ -314,7 +327,9 @@ function PainelCertificado() {
                   {bulkLoading
                     ? "Carregando..."
                     : bulkData
-                      ? `${bulkData.length} certificado(s) prontos para impressão.`
+                      ? bulkQuery.trim()
+                        ? `${bulkFiltered?.length ?? 0} de ${bulkData.length} certificado(s).`
+                        : `${bulkData.length} certificado(s) prontos para impressão.`
                       : ""}
                 </p>
               </div>
@@ -352,8 +367,24 @@ function PainelCertificado() {
                 </button>
               </div>
             </div>
+            {bulkData && bulkData.length > 0 && (
+              <div className="card-elevated mt-4 p-4">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nome ou CPF..."
+                    value={bulkQuery}
+                    onChange={(e) => setBulkQuery(e.target.value)}
+                    className="h-11 w-full rounded-xl border border-input bg-background pl-10 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+                  />
+                </div>
+              </div>
+            )}
           </section>
         )}
+
+
 
         {/* holder off-screen usado por baixarTodosPdf */}
         <div
@@ -363,13 +394,18 @@ function PainelCertificado() {
         />
 
 
-        {bulk && bulkData && (
+        {bulk && bulkFiltered && (
           <div className="cert-print-area mt-4 space-y-6 print:mt-0 print:space-y-0">
-            {bulkData.map((c, idx) => (
+            {bulkFiltered.map((c, idx) => (
               <div key={idx} className="cert-page-wrap flex justify-center">
                 <Certificado nome={c.nome} cpf={c.cpf} oficinas={c.oficinas} totalHoras={c.totalHoras} />
               </div>
             ))}
+            {bulkFiltered.length === 0 && (
+              <p className="text-center text-sm text-muted-foreground print:hidden">
+                Nenhum certificado encontrado para "{bulkQuery}".
+              </p>
+            )}
           </div>
         )}
       </main>
