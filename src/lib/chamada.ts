@@ -23,8 +23,8 @@ export type ChamadaItem = {
   inscricao_id: string;
   nome: string;
   cpf: string;
-  manha: boolean;
-  tarde: boolean;
+  manha: boolean | null;
+  tarde: boolean | null;
   horas: number;
 };
 
@@ -37,8 +37,8 @@ export async function listarChamada(oficinaId: string): Promise<ChamadaItem[]> {
 export async function marcarPresenca(params: {
   inscricaoId: string;
   oficinaId: string;
-  manha: boolean;
-  tarde: boolean;
+  manha: boolean | null;
+  tarde: boolean | null;
 }) {
   const { data, error } = await supabase.rpc("marcar_presenca", {
     _inscricao_id: params.inscricaoId,
