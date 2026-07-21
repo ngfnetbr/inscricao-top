@@ -271,50 +271,49 @@ function Painel({ email }: { email: string }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/60 bg-card/60 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">SME</p>
-            <h1 className="text-base font-semibold text-foreground">Painel administrativo</h1>
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-4">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground sm:text-xs">SME</p>
+            <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">Painel administrativo</h1>
+            <p className="truncate text-[11px] text-muted-foreground sm:hidden">{email}</p>
           </div>
-          <div className="flex items-center gap-2 text-sm">
+          <div className="-mx-3 flex items-center gap-1.5 overflow-x-auto px-3 pb-1 text-sm sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
             <span className="hidden text-muted-foreground sm:inline">{email}</span>
             <Link
               to="/admin/gestores"
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted sm:px-3 sm:py-2 sm:text-sm"
             >
-              <Settings className="h-4 w-4" /> Gestores
+              <Settings className="h-4 w-4" /> <span className="hidden xs:inline sm:inline">Gestores</span>
             </Link>
             <Link
               to="/chamada"
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted sm:px-3 sm:py-2 sm:text-sm"
             >
-              <ClipboardList className="h-4 w-4" /> Chamada
+              <ClipboardList className="h-4 w-4" /> <span>Chamada</span>
             </Link>
             <Link
               to="/admin/pessoas"
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted sm:px-3 sm:py-2 sm:text-sm"
             >
-              <Users className="h-4 w-4" /> Pessoas
+              <Users className="h-4 w-4" /> <span>Pessoas</span>
             </Link>
             <Link
               to="/certificado"
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted sm:px-3 sm:py-2 sm:text-sm"
             >
-              <ClipboardList className="h-4 w-4" /> Certificados
+              <ClipboardList className="h-4 w-4" /> <span>Certificados</span>
             </Link>
             <button
               onClick={() => supabase.auth.signOut()}
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted sm:px-3 sm:py-2 sm:text-sm"
             >
-              <LogOut className="h-4 w-4" /> Sair
+              <LogOut className="h-4 w-4" /> <span>Sair</span>
             </button>
-
           </div>
-
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6">
+      <main className="mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xl font-bold text-foreground">Oficinas e ocupação</h2>
           <div className="flex gap-2">
