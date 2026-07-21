@@ -68,6 +68,7 @@ function PainelCertificado() {
   const [bulkData, setBulkData] = useState<CertData[] | null>(null);
   const [bulkQuery, setBulkQuery] = useState("");
   const [downloading, setDownloading] = useState<{ atual: number; total: number } | null>(null);
+  const [singleDownloading, setSingleDownloading] = useState<string | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
 
   async function buscar(valor: string) {
@@ -234,6 +235,60 @@ function PainelCertificado() {
     }
   }
 
+  async function baixarUm(c: CertData) {
+    setSingleDownloading(c.cpf);
+    const holder = document.createElement("div");
+    holder.style.cssText = "position:fixed;left:-10000px;top:0;pointer-events:none;";
+    document.body.appendChild(holder);
+    const { renderCertificadoOffscreen } = await import("@/lib/certificado-render");
+    try {
+      const node = renderCertificadoOffscreen(holder, c, certificadoBase.url);
+      const img = node.querySelector("img");
+      if (img && !img.complete) {
+        await new Promise<void>((res) => {
+          img.addEventListener("load", () => res(), { once: true });
+          img.addEventListener("error", () => res(), { once: true });
+        });
+      }
+      await new Promise((r) => setTimeout(r, 60));
+      const canvas = await html2canvas(node, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        logging: false,
+        onclone: (doc) => {
+          const style = doc.createElement("style");
+          style.textContent = `
+            html, body { background: #ffffff !important; }
+            *, *::before, *::after {
+              color: #111111 !important;
+              border-color: #000000 !important;
+              outline-color: #000000 !important;
+              text-decoration-color: #000000 !important;
+              caret-color: #000000 !important;
+              box-shadow: none !important;
+              text-shadow: none !important;
+            }
+            *:not(.cert-safe):not(.cert-safe *) { background-color: transparent !important; background-image: none !important; }
+            .cert-safe { background-color: #ffffff !important; }
+          `;
+          doc.head.appendChild(style);
+        },
+      });
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, pageH);
+      pdf.save(`${(c.cpf || "").replace(/\D/g, "")}.pdf`);
+      node.remove();
+    } catch (e) {
+      console.error(e);
+      toast.error("Falha ao baixar certificado.");
+    } finally {
+      holder.remove();
+      setSingleDownloading(null);
+    }
+  }
 
   const oficinasComHoras = useMemo(() => {
     if (resultado?.status !== "encontrado") return [];
@@ -395,18 +450,54 @@ function PainelCertificado() {
 
 
         {bulk && bulkFiltered && (
-          <div className="cert-print-area mt-4 space-y-6 print:mt-0 print:space-y-0">
-            {bulkFiltered.map((c, idx) => (
-              <div key={idx} className="cert-page-wrap flex justify-center">
-                <Certificado nome={c.nome} cpf={c.cpf} oficinas={c.oficinas} totalHoras={c.totalHoras} />
-              </div>
-            ))}
+          <>
             {bulkFiltered.length === 0 && (
-              <p className="text-center text-sm text-muted-foreground print:hidden">
+              <p className="mt-6 text-center text-sm text-muted-foreground print:hidden">
                 Nenhum certificado encontrado para "{bulkQuery}".
               </p>
             )}
-          </div>
+
+            {/* Mobile: lista simplificada com download individual */}
+            {bulkFiltered.length > 0 && (
+              <div className="mt-4 space-y-3 md:hidden print:hidden">
+                {bulkFiltered.map((c) => (
+                  <div
+                    key={c.cpf}
+                    className="card-elevated flex items-center justify-between gap-3 p-4"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold">{c.nome}</p>
+                      <p className="text-sm text-muted-foreground">{formatarCpf(c.cpf)}</p>
+                      <p className="text-xs text-muted-foreground">{c.totalHoras}h</p>
+                    </div>
+                    <button
+                      onClick={() => baixarUm(c)}
+                      disabled={singleDownloading === c.cpf || !!downloading}
+                      className="brand-gradient inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                    >
+                      {singleDownloading === c.cpf ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      Baixar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Desktop: visualização prévia para impressão / download em massa */}
+            {bulkFiltered.length > 0 && (
+              <div className="cert-print-area mt-4 hidden space-y-6 md:block print:mt-0 print:block print:space-y-0">
+                {bulkFiltered.map((c, idx) => (
+                  <div key={idx} className="cert-page-wrap flex justify-center">
+                    <Certificado nome={c.nome} cpf={c.cpf} oficinas={c.oficinas} totalHoras={c.totalHoras} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </main>
 
