@@ -213,8 +213,9 @@ function ModalNovoGestor({
   oficinas: OficinaComVagas[];
   onFechar: () => void;
   onSalvo: () => void;
-  criar: (email: string, senha: string, ids: string[]) => Promise<void>;
+  criar: (nome: string, email: string, senha: string, ids: string[]) => Promise<void>;
 }) {
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [selecionadas, setSelecionadas] = useState<string[]>([]);
@@ -224,7 +225,7 @@ function ModalNovoGestor({
     e.preventDefault();
     setSalvando(true);
     try {
-      await criar(email, senha, selecionadas);
+      await criar(nome.trim(), email, senha, selecionadas);
       toast.success("Gestor criado.");
       onSalvo();
     } catch (err) {
