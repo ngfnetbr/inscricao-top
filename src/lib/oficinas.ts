@@ -15,11 +15,10 @@ export type OficinaComVagas = {
   lotada: boolean;
 };
 
-export async function listarOficinas(): Promise<OficinaComVagas[]> {
-  const { data, error } = await supabase
-    .from("oficinas_com_vagas")
-    .select("*")
-    .eq("ativa", true)
+export async function listarOficinas(incluirInativas = false): Promise<OficinaComVagas[]> {
+  let q = supabase.from("oficinas_com_vagas").select("*");
+  if (!incluirInativas) q = q.eq("ativa", true);
+  const { data, error } = await q
     .order("dia", { ascending: true })
     .order("ordem", { ascending: true })
     .order("titulo", { ascending: true });
