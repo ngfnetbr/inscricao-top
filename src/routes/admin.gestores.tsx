@@ -240,6 +240,16 @@ function ModalNovoGestor({
     <ModalShell titulo="Novo gestor" onFechar={onFechar}>
       <form onSubmit={salvar} className="space-y-4">
         <div>
+          <label className="block text-sm font-medium">Nome do gestor</label>
+          <input
+            type="text"
+            required
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+          />
+        </div>
+        <div>
           <label className="block text-sm font-medium">E-mail</label>
           <input
             type="email"
