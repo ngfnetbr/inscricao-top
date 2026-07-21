@@ -124,8 +124,11 @@ function LoginForm() {
 function Painel({ email }: { email: string }) {
   const [inscricoes, setInscricoes] = useState<Inscricao[]>([]);
   const [oficinas, setOficinas] = useState<OficinaComVagas[]>([]);
+  const [presencas, setPresencas] = useState<Array<{ inscricao_id: string; oficina_id: string; manha: boolean; tarde: boolean }>>([]);
   const [carregando, setCarregando] = useState(true);
-  const [filtro, setFiltro] = useState("");
+  const [filtroNome, setFiltroNome] = useState("");
+  const [filtroCpf, setFiltroCpf] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState<"todos" | "sem_chamada" | "parcial" | "concluido">("todos");
   const [editando, setEditando] = useState<Inscricao | null>(null);
   const [editandoOficina, setEditandoOficina] = useState<OficinaComVagas | null>(null);
   const [oficinaAberta, setOficinaAberta] = useState<string | null>(null);
@@ -138,13 +141,15 @@ function Painel({ email }: { email: string }) {
 
   async function carregar() {
     setCarregando(true);
-    const [insc, ofs] = await Promise.all([
+    const [insc, ofs, pres] = await Promise.all([
       supabase.from("inscricoes").select("*").order("criado_em", { ascending: false }),
       listarOficinas(true),
+      supabase.from("presencas").select("inscricao_id, oficina_id, manha, tarde"),
     ]);
     if (insc.error) toast.error("Falha ao carregar inscrições.");
     setInscricoes((insc.data ?? []) as Inscricao[]);
     setOficinas(ofs);
+    setPresencas((pres.data ?? []) as typeof presencas);
     setCarregando(false);
   }
 
