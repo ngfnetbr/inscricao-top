@@ -98,6 +98,37 @@ function ChamadaIndex() {
           </div>
         )}
 
+        {!carregando && oficinas.length > 0 && (() => {
+          const pend = oficinas.filter((o) => (o.pendentes ?? 0) > 0);
+          const totalPend = pend.reduce((s, o) => s + (o.pendentes ?? 0), 0);
+          return (
+            <div className="mb-4 card-elevated p-4">
+              {pend.length === 0 ? (
+                <p className="text-sm text-success">✅ Todas as chamadas estão em dia.</p>
+              ) : (
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {pend.length} oficina(s) com chamada pendente ({totalPend} participante(s) sem registro)
+                  </p>
+                  <ul className="mt-2 flex flex-wrap gap-2">
+                    {pend.map((o) => (
+                      <li key={o.id}>
+                        <Link
+                          to="/chamada/$oficinaId"
+                          params={{ oficinaId: o.id }}
+                          className="inline-flex items-center gap-1 rounded-full bg-warning/20 px-2 py-0.5 text-xs font-semibold text-warning-foreground hover:bg-warning/30"
+                        >
+                          {o.titulo} · {o.pendentes} pend.
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {!carregando && oficinas.length > 0 && (
           <div className="space-y-6">
             {[
@@ -117,8 +148,22 @@ function ChamadaIndex() {
                           params={{ oficinaId: o.id }}
                           className="card-elevated block h-full p-4 transition hover:border-primary/60"
                         >
-                          <p className="font-semibold text-foreground">{o.titulo}</p>
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-semibold text-foreground">{o.titulo}</p>
+                            {(o.pendentes ?? 0) > 0 ? (
+                              <span className="shrink-0 rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-semibold text-warning-foreground">
+                                {o.pendentes} pendente(s)
+                              </span>
+                            ) : (o.total_inscritos ?? 0) > 0 ? (
+                              <span className="shrink-0 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success">
+                                ✓ concluído
+                              </span>
+                            ) : null}
+                          </div>
                           <p className="mt-1 text-xs text-muted-foreground">{o.ministrante}</p>
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            {o.chamadas_feitas ?? 0} de {o.total_inscritos ?? 0} chamada(s) feita(s)
+                          </p>
                           {o.publico_alvo && (
                             <p className="mt-2 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
                               {o.publico_alvo}
