@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2, Search, CheckCircle2, Printer, GraduationCap } from "lucide-react";
 import { consultarInscricaoPorCpf, type ConsultaResultado } from "@/lib/oficinas";
 import { cpfValido, formatarCpf, normalizarCpf } from "@/lib/format";
+import { TelaManutencao, useManutencao } from "@/components/Manutencao";
 
 export const Route = createFileRoute("/consultar")({
   component: ConsultarPage,
