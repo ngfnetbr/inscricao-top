@@ -984,3 +984,84 @@ function ModalEditarOficina({
     </div>
   );
 }
+
+function ManutencaoCard() {
+  const [ativo, setAtivo] = useState(false);
+  const [mensagem, setMensagem] = useState("Sistema temporariamente em manutenção. Volte em instantes.");
+  const [carregando, setCarregando] = useState(true);
+  const [salvando, setSalvando] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { obterManutencao } = await import("@/lib/manutencao");
+      const m = await obterManutencao();
+      setAtivo(m.ativo);
+      setMensagem(m.mensagem);
+      setCarregando(false);
+    })();
+  }, []);
+
+  async function salvar(novoAtivo: boolean) {
+    setSalvando(true);
+    try {
+      const { definirManutencao } = await import("@/lib/manutencao");
+      const r = await definirManutencao(novoAtivo, mensagem);
+      if (r.status === "sucesso") {
+        setAtivo(novoAtivo);
+        toast.success(novoAtivo ? "Modo manutenção ativado." : "Modo manutenção desativado.");
+      } else {
+        toast.error("Não autorizado.");
+      }
+    } catch {
+      toast.error("Falha ao salvar.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  if (carregando) return null;
+
+  return (
+    <div className={`card-elevated mb-6 p-4 ${ativo ? "border-2 border-amber-400 bg-amber-50" : ""}`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-foreground">Modo manutenção</h3>
+            {ativo && (
+              <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                Ativo
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Quando ativo, a página inicial, consulta e participantes exibem apenas a mensagem abaixo. O painel admin continua acessível.
+          </p>
+          <textarea
+            value={mensagem}
+            onChange={(e) => setMensagem(e.target.value)}
+            rows={2}
+            className="mt-2 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => salvar(!ativo)}
+            disabled={salvando}
+            className={`inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-white disabled:opacity-60 ${ativo ? "bg-emerald-600 hover:bg-emerald-700" : "bg-amber-600 hover:bg-amber-700"}`}
+          >
+            {salvando ? <Loader2 className="h-4 w-4 animate-spin" /> : ativo ? "Desativar" : "Ativar"}
+          </button>
+          {ativo && (
+            <button
+              onClick={() => salvar(true)}
+              disabled={salvando}
+              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted disabled:opacity-60"
+            >
+              <Save className="h-4 w-4" /> Atualizar mensagem
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
