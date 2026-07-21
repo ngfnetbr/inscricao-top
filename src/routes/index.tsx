@@ -49,7 +49,7 @@ function InscricaoPage() {
 
   const { data: oficinas = [], refetch } = useQuery({
     queryKey: ["oficinas"],
-    queryFn: listarOficinas,
+    queryFn: () => listarOficinas(),
     refetchOnWindowFocus: true,
   });
 

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, LogOut, Download, RefreshCw, ArrowLeft } from "lucide-react";
+import { Loader2, LogOut, Download, RefreshCw, ArrowLeft, Pencil, Trash2, Plus, Minus, Power, X, Save } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { formatarCpf } from "@/lib/format";
@@ -58,9 +58,7 @@ function LoginForm() {
     setCarregando(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
     setCarregando(false);
-    if (error) {
-      toast.error("Não foi possível entrar. Verifique e-mail e senha.");
-    }
+    if (error) toast.error("Não foi possível entrar. Verifique e-mail e senha.");
   }
 
   return (
@@ -99,9 +97,6 @@ function LoginForm() {
         >
           {carregando ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
         </button>
-        <p className="mt-3 text-xs text-muted-foreground">
-          O acesso deve ser criado pelo administrador no painel do Lovable Cloud.
-        </p>
       </form>
     </div>
   );
@@ -111,6 +106,8 @@ function Painel({ email }: { email: string }) {
   const [inscricoes, setInscricoes] = useState<Inscricao[]>([]);
   const [oficinas, setOficinas] = useState<OficinaComVagas[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [filtro, setFiltro] = useState("");
+  const [editando, setEditando] = useState<Inscricao | null>(null);
 
   const mapaOficinas = useMemo(() => {
     const m = new Map<string, OficinaComVagas>();
@@ -122,7 +119,7 @@ function Painel({ email }: { email: string }) {
     setCarregando(true);
     const [insc, ofs] = await Promise.all([
       supabase.from("inscricoes").select("*").order("criado_em", { ascending: false }),
-      listarOficinas(),
+      listarOficinas(true),
     ]);
     if (insc.error) toast.error("Falha ao carregar inscrições.");
     setInscricoes((insc.data ?? []) as Inscricao[]);
@@ -133,14 +130,61 @@ function Painel({ email }: { email: string }) {
   useEffect(() => {
     carregar();
     const ch = supabase
-      .channel("admin-inscricoes")
+      .channel("admin-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "inscricoes" }, () => carregar())
+      .on("postgres_changes", { event: "*", schema: "public", table: "oficinas" }, () => carregar())
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function ajustarVagas(o: OficinaComVagas, delta: number) {
+    const novo = Math.max(o.inscritos, o.limite_vagas + delta);
+    if (novo === o.limite_vagas) return;
+    const { error } = await supabase.from("oficinas").update({ limite_vagas: novo }).eq("id", o.id);
+    if (error) toast.error("Não foi possível atualizar vagas.");
+    else {
+      toast.success(`Vagas de "${o.titulo}" agora: ${novo}`);
+      carregar();
+    }
+  }
+
+  async function definirVagas(o: OficinaComVagas) {
+    const entrada = window.prompt(`Novo limite de vagas para "${o.titulo}" (mínimo ${o.inscritos})`, String(o.limite_vagas));
+    if (!entrada) return;
+    const n = parseInt(entrada, 10);
+    if (!Number.isFinite(n) || n < o.inscritos) {
+      toast.error(`O limite deve ser um número maior ou igual a ${o.inscritos}.`);
+      return;
+    }
+    const { error } = await supabase.from("oficinas").update({ limite_vagas: n }).eq("id", o.id);
+    if (error) toast.error("Não foi possível atualizar vagas.");
+    else {
+      toast.success("Vagas atualizadas.");
+      carregar();
+    }
+  }
+
+  async function alternarAtiva(o: OficinaComVagas) {
+    if (o.ativa && o.inscritos > 0) {
+      if (!window.confirm(`"${o.titulo}" possui ${o.inscritos} inscritos. Desativar mesmo assim?`)) return;
+    }
+    const { error } = await supabase.from("oficinas").update({ ativa: !o.ativa }).eq("id", o.id);
+    if (error) toast.error("Falha ao alterar status.");
+    else carregar();
+  }
+
+  async function excluirInscricao(i: Inscricao) {
+    if (!window.confirm(`Excluir a inscrição de ${i.nome}?`)) return;
+    const { error } = await supabase.from("inscricoes").delete().eq("id", i.id);
+    if (error) toast.error("Falha ao excluir.");
+    else {
+      toast.success("Inscrição excluída.");
+      carregar();
+    }
+  }
 
   function exportarCsv() {
     const linhas = [
@@ -160,9 +204,7 @@ function Painel({ email }: { email: string }) {
         ];
       }),
     ];
-    const csv = linhas
-      .map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";"))
-      .join("\n");
+    const csv = linhas.map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -175,13 +217,29 @@ function Painel({ email }: { email: string }) {
   const quinta = oficinas.filter((o) => o.dia === "quinta");
   const sexta = oficinas.filter((o) => o.dia === "sexta");
 
+  const inscricoesFiltradas = useMemo(() => {
+    const f = filtro.trim().toLowerCase();
+    if (!f) return inscricoes;
+    return inscricoes.filter((i) => {
+      const q = mapaOficinas.get(i.oficina_quinta_id);
+      const s = mapaOficinas.get(i.oficina_sexta_id);
+      return (
+        i.nome.toLowerCase().includes(f) ||
+        i.cpf.includes(f.replace(/\D/g, "")) ||
+        i.protocolo.toLowerCase().includes(f) ||
+        (q?.titulo.toLowerCase().includes(f) ?? false) ||
+        (s?.titulo.toLowerCase().includes(f) ?? false)
+      );
+    });
+  }, [filtro, inscricoes, mapaOficinas]);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/60 bg-card/60 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div>
             <p className="text-xs uppercase tracking-wider text-muted-foreground">SME</p>
-            <h1 className="text-base font-semibold text-foreground">Painel de inscrições</h1>
+            <h1 className="text-base font-semibold text-foreground">Painel administrativo</h1>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <span className="hidden text-muted-foreground sm:inline">{email}</span>
@@ -197,7 +255,7 @@ function Painel({ email }: { email: string }) {
 
       <main className="mx-auto max-w-6xl px-4 py-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-xl font-bold text-foreground">Ocupação das oficinas</h2>
+          <h2 className="text-xl font-bold text-foreground">Oficinas e ocupação</h2>
           <div className="flex gap-2">
             <button
               onClick={carregar}
@@ -215,51 +273,93 @@ function Painel({ email }: { email: string }) {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <OcupacaoLista titulo="Quinta-feira" oficinas={quinta} />
-          <OcupacaoLista titulo="Sexta-feira" oficinas={sexta} />
+          <OcupacaoLista
+            titulo="Quinta-feira"
+            oficinas={quinta}
+            onMais={(o) => ajustarVagas(o, 1)}
+            onMenos={(o) => ajustarVagas(o, -1)}
+            onEditar={definirVagas}
+            onAlternar={alternarAtiva}
+          />
+          <OcupacaoLista
+            titulo="Sexta-feira"
+            oficinas={sexta}
+            onMais={(o) => ajustarVagas(o, 1)}
+            onMenos={(o) => ajustarVagas(o, -1)}
+            onEditar={definirVagas}
+            onAlternar={alternarAtiva}
+          />
         </div>
 
-        <h2 className="mt-8 mb-3 text-xl font-bold text-foreground">
-          Inscrições ({inscricoes.length})
-        </h2>
+        <div className="mt-8 mb-3 flex flex-wrap items-end justify-between gap-3">
+          <h2 className="text-xl font-bold text-foreground">
+            Inscrições ({inscricoesFiltradas.length}
+            {filtro && ` de ${inscricoes.length}`})
+          </h2>
+          <input
+            value={filtro}
+            onChange={(e) => setFiltro(e.target.value)}
+            placeholder="Buscar por nome, CPF, protocolo ou oficina..."
+            className="h-10 w-full max-w-md rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+          />
+        </div>
 
         <div className="card-elevated overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
+            <table className="w-full min-w-[860px] text-sm">
               <thead className="bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3">Protocolo</th>
-                  <th className="px-4 py-3">Nome</th>
-                  <th className="px-4 py-3">CPF</th>
-                  <th className="px-4 py-3">Quinta</th>
-                  <th className="px-4 py-3">Sexta</th>
-                  <th className="px-4 py-3">Data</th>
+                  <th className="px-3 py-3">Protocolo</th>
+                  <th className="px-3 py-3">Nome</th>
+                  <th className="px-3 py-3">CPF</th>
+                  <th className="px-3 py-3">Quinta</th>
+                  <th className="px-3 py-3">Sexta</th>
+                  <th className="px-3 py-3">Data</th>
+                  <th className="px-3 py-3 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {carregando && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                       Carregando...
                     </td>
                   </tr>
                 )}
-                {!carregando && inscricoes.length === 0 && (
+                {!carregando && inscricoesFiltradas.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                      Nenhuma inscrição registrada ainda.
+                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                      Nenhuma inscrição encontrada.
                     </td>
                   </tr>
                 )}
-                {inscricoes.map((i) => (
+                {inscricoesFiltradas.map((i) => (
                   <tr key={i.id}>
-                    <td className="px-4 py-3 font-mono text-xs">{i.protocolo}</td>
-                    <td className="px-4 py-3 font-medium text-foreground">{i.nome}</td>
-                    <td className="px-4 py-3">{formatarCpf(i.cpf)}</td>
-                    <td className="px-4 py-3">{mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—"}</td>
-                    <td className="px-4 py-3">{mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—"}</td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                    <td className="px-3 py-3 font-mono text-xs">{i.protocolo}</td>
+                    <td className="px-3 py-3 font-medium text-foreground">{i.nome}</td>
+                    <td className="px-3 py-3">{formatarCpf(i.cpf)}</td>
+                    <td className="px-3 py-3">{mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—"}</td>
+                    <td className="px-3 py-3">{mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—"}</td>
+                    <td className="px-3 py-3 text-xs text-muted-foreground">
                       {new Date(i.criado_em).toLocaleString("pt-BR")}
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => setEditando(i)}
+                          title="Editar / Transferir"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card hover:bg-muted"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => excluirInscricao(i)}
+                          title="Excluir"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-destructive/40 bg-card text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -268,23 +368,52 @@ function Painel({ email }: { email: string }) {
           </div>
         </div>
       </main>
+
+      {editando && (
+        <ModalEditar
+          inscricao={editando}
+          oficinas={oficinas}
+          onFechar={() => setEditando(null)}
+          onSalvo={() => {
+            setEditando(null);
+            carregar();
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function OcupacaoLista({ titulo, oficinas }: { titulo: string; oficinas: OficinaComVagas[] }) {
+function OcupacaoLista({
+  titulo,
+  oficinas,
+  onMais,
+  onMenos,
+  onEditar,
+  onAlternar,
+}: {
+  titulo: string;
+  oficinas: OficinaComVagas[];
+  onMais: (o: OficinaComVagas) => void;
+  onMenos: (o: OficinaComVagas) => void;
+  onEditar: (o: OficinaComVagas) => void;
+  onAlternar: (o: OficinaComVagas) => void;
+}) {
   return (
     <div className="card-elevated p-5">
       <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{titulo}</h3>
       {oficinas.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma oficina.</p>}
-      <ul className="space-y-3">
+      <ul className="space-y-4">
         {oficinas.map((o) => {
-          const pct = Math.min(100, Math.round((o.inscritos / o.limite_vagas) * 100));
+          const pct = Math.min(100, Math.round((o.inscritos / Math.max(1, o.limite_vagas)) * 100));
           return (
-            <li key={o.id}>
-              <div className="mb-1 flex items-center justify-between gap-2 text-sm">
-                <span className="font-medium text-foreground">{o.titulo}</span>
-                <span className={o.lotada ? "text-destructive font-semibold" : "text-muted-foreground"}>
+            <li key={o.id} className={o.ativa ? "" : "opacity-60"}>
+              <div className="mb-1 flex items-start justify-between gap-2 text-sm">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-foreground">{o.titulo}</p>
+                  <p className="truncate text-xs text-muted-foreground">{o.ministrante}</p>
+                </div>
+                <span className={o.lotada ? "shrink-0 font-semibold text-destructive" : "shrink-0 text-muted-foreground"}>
                   {o.inscritos}/{o.limite_vagas}
                 </span>
               </div>
@@ -294,10 +423,156 @@ function OcupacaoLista({ titulo, oficinas }: { titulo: string; oficinas: Oficina
                   style={{ width: `${pct}%` }}
                 />
               </div>
+              <div className="mt-2 flex flex-wrap items-center gap-1">
+                <button
+                  onClick={() => onMenos(o)}
+                  disabled={o.limite_vagas <= o.inscritos}
+                  title="Reduzir uma vaga"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card hover:bg-muted disabled:opacity-40"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => onMais(o)}
+                  title="Adicionar uma vaga"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card hover:bg-muted"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => onEditar(o)}
+                  className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-card px-2 text-xs hover:bg-muted"
+                >
+                  <Pencil className="h-3 w-3" /> Limite
+                </button>
+                <button
+                  onClick={() => onAlternar(o)}
+                  className={`inline-flex h-7 items-center gap-1 rounded-md border px-2 text-xs ${o.ativa ? "border-border bg-card hover:bg-muted" : "border-primary/40 bg-primary/10 text-primary"}`}
+                >
+                  <Power className="h-3 w-3" /> {o.ativa ? "Ativa" : "Inativa"}
+                </button>
+              </div>
             </li>
           );
         })}
       </ul>
+    </div>
+  );
+}
+
+function ModalEditar({
+  inscricao,
+  oficinas,
+  onFechar,
+  onSalvo,
+}: {
+  inscricao: Inscricao;
+  oficinas: OficinaComVagas[];
+  onFechar: () => void;
+  onSalvo: () => void;
+}) {
+  const [nome, setNome] = useState(inscricao.nome);
+  const [quintaId, setQuintaId] = useState(inscricao.oficina_quinta_id);
+  const [sextaId, setSextaId] = useState(inscricao.oficina_sexta_id);
+  const [salvando, setSalvando] = useState(false);
+
+  const quintas = oficinas.filter((o) => o.dia === "quinta");
+  const sextas = oficinas.filter((o) => o.dia === "sexta");
+
+  async function salvar() {
+    const nomeLimpo = nome.trim();
+    if (nomeLimpo.length < 3) {
+      toast.error("Informe um nome válido.");
+      return;
+    }
+    setSalvando(true);
+    const { data, error } = await supabase.rpc("admin_atualizar_inscricao", {
+      _inscricao_id: inscricao.id,
+      _oficina_quinta: quintaId,
+      _oficina_sexta: sextaId,
+      _nome: nomeLimpo,
+    });
+    setSalvando(false);
+    if (error) {
+      toast.error("Não foi possível salvar.");
+      return;
+    }
+    const status = (data as { status?: string })?.status;
+    if (status === "sucesso") {
+      toast.success("Inscrição atualizada.");
+      onSalvo();
+    } else if (status === "oficina_quinta_lotada") toast.error("Oficina de quinta lotada.");
+    else if (status === "oficina_sexta_lotada") toast.error("Oficina de sexta lotada.");
+    else if (status === "oficinas_iguais") toast.error("Escolha oficinas diferentes.");
+    else toast.error("Falha: " + (status ?? "desconhecida"));
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onFechar}>
+      <div
+        className="card-elevated w-full max-w-lg p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">Editar inscrição</h3>
+          <button onClick={onFechar} className="rounded-md p-1 hover:bg-muted">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <p className="mb-4 text-xs text-muted-foreground">
+          Protocolo <span className="font-mono">{inscricao.protocolo}</span> · CPF {formatarCpf(inscricao.cpf)}
+        </p>
+
+        <label className="block text-sm font-medium">Nome</label>
+        <input
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        />
+
+        <label className="mt-4 block text-sm font-medium">Oficina de quinta-feira</label>
+        <select
+          value={quintaId}
+          onChange={(e) => setQuintaId(e.target.value)}
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        >
+          {quintas.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.titulo} — {o.inscritos}/{o.limite_vagas}
+            </option>
+          ))}
+        </select>
+
+        <label className="mt-4 block text-sm font-medium">Oficina de sexta-feira</label>
+        <select
+          value={sextaId}
+          onChange={(e) => setSextaId(e.target.value)}
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        >
+          {sextas.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.titulo} — {o.inscritos}/{o.limite_vagas}
+            </option>
+          ))}
+        </select>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            onClick={onFechar}
+            className="inline-flex h-10 items-center gap-1 rounded-lg border border-border bg-card px-4 text-sm hover:bg-muted"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={salvar}
+            disabled={salvando}
+            className="brand-gradient inline-flex h-10 items-center gap-1 rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            {salvando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
