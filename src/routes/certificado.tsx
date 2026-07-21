@@ -642,7 +642,7 @@ function Certificado({
         }
         .cert-intro { font-size: 17px; margin: 0; color: #222; }
         .cert-nome {
-          font-size: 26px; font-weight: 800;
+          font-size: 22px; font-weight: 800;
           margin: 6px 0 4px 0; line-height: 1.15;
           overflow-wrap: break-word;
         }
