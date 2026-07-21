@@ -33,6 +33,6 @@ export function cpfValido(input: string): boolean {
 
 export function textoVagas(vagas: number, lotada: boolean): string {
   if (lotada || vagas <= 0) return "Oficina lotada";
-  if (vagas === 1) return "Última vaga";
+  if (vagas === 1) return "1 vaga disponível";
   return `${vagas} vagas disponíveis`;
 }
