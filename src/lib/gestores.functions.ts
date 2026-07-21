@@ -4,9 +4,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const criarGestor = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => {
-    const d = data as { email?: string; senha?: string; oficinaIds?: string[] };
+    const d = data as { nome?: string; email?: string; senha?: string; oficinaIds?: string[] };
     if (!d.email || !d.senha || d.senha.length < 6) throw new Error("Dados inválidos");
-    return { email: d.email.trim().toLowerCase(), senha: d.senha, oficinaIds: d.oficinaIds ?? [] };
+    return {
+      nome: (d.nome ?? "").trim() || null,
+      email: d.email.trim().toLowerCase(),
+      senha: d.senha,
+      oficinaIds: d.oficinaIds ?? [],
+    };
   })
   .handler(async ({ data, context }) => {
     const admin = await context.supabase
@@ -61,7 +66,7 @@ export const criarGestor = createServerFn({ method: "POST" })
 
     const roleRes = await supabaseAdmin
       .from("user_roles")
-      .upsert({ user_id: userId, role: "gestor" }, { onConflict: "user_id,role" });
+      .upsert({ user_id: userId, role: "gestor", nome: data.nome }, { onConflict: "user_id,role" });
     if (roleRes.error) throw new Error(`Falha ao atribuir papel: ${roleRes.error.message}`);
 
     if (data.oficinaIds.length > 0) {

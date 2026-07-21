@@ -12,7 +12,7 @@ export const Route = createFileRoute("/admin/gestores")({
   component: AdminGestores,
 });
 
-type Gestor = { user_id: string; email: string; oficinas: { id: string; titulo: string; dia: string }[] };
+type Gestor = { user_id: string; email: string; nome: string | null; oficinas: { id: string; titulo: string; dia: string }[] };
 
 function AdminGestores() {
   const [checking, setChecking] = useState(true);
@@ -29,11 +29,23 @@ function AdminGestores() {
   const definirFn = useServerFn(definirOficinasGestor);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setEmail(data.session?.user.email ?? null);
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        setChecking(false);
+        navigate({ to: "/admin" });
+        return;
+      }
+      const { obterPapel } = await import("@/lib/role");
+      const papel = await obterPapel(data.session.user.id);
+      if (papel !== "admin") {
+        setChecking(false);
+        navigate({ to: "/chamada" });
+        return;
+      }
+      setEmail(data.session.user.email ?? null);
       setChecking(false);
-      if (!data.session) navigate({ to: "/admin" });
-    });
+    })();
   }, [navigate]);
 
   async function carregar() {
@@ -44,7 +56,7 @@ function AdminGestores() {
         listarOficinas(true),
       ]);
       if (error) throw error;
-      setGestores((data ?? []) as Gestor[]);
+      setGestores((data ?? []) as unknown as Gestor[]);
       setOficinas(ofs);
     } catch {
       toast.error("Falha ao carregar gestores.");
@@ -125,7 +137,8 @@ function AdminGestores() {
               <li key={g.user_id} className="p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-medium text-foreground">{g.email}</p>
+                    <p className="font-medium text-foreground">{g.nome || "(sem nome)"}</p>
+                    <p className="text-xs text-muted-foreground">{g.email}</p>
                     <div className="mt-2 flex flex-wrap gap-1">
                       {g.oficinas.length === 0 && (
                         <span className="text-xs text-muted-foreground">Nenhuma oficina atribuída</span>
@@ -169,8 +182,8 @@ function AdminGestores() {
             setModalNovo(false);
             carregar();
           }}
-          criar={async (email, senha, ids) => {
-            await criarFn({ data: { email, senha, oficinaIds: ids } });
+          criar={async (nome, email, senha, ids) => {
+            await criarFn({ data: { nome, email, senha, oficinaIds: ids } });
           }}
         />
       )}
@@ -200,8 +213,9 @@ function ModalNovoGestor({
   oficinas: OficinaComVagas[];
   onFechar: () => void;
   onSalvo: () => void;
-  criar: (email: string, senha: string, ids: string[]) => Promise<void>;
+  criar: (nome: string, email: string, senha: string, ids: string[]) => Promise<void>;
 }) {
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [selecionadas, setSelecionadas] = useState<string[]>([]);
@@ -211,7 +225,7 @@ function ModalNovoGestor({
     e.preventDefault();
     setSalvando(true);
     try {
-      await criar(email, senha, selecionadas);
+      await criar(nome.trim(), email, senha, selecionadas);
       toast.success("Gestor criado.");
       onSalvo();
     } catch (err) {
@@ -225,6 +239,16 @@ function ModalNovoGestor({
   return (
     <ModalShell titulo="Novo gestor" onFechar={onFechar}>
       <form onSubmit={salvar} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium">Nome do gestor</label>
+          <input
+            type="text"
+            required
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+          />
+        </div>
         <div>
           <label className="block text-sm font-medium">E-mail</label>
           <input

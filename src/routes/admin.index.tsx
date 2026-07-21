@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -43,17 +43,35 @@ type Inscricao = {
 function AdminPage() {
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSessionEmail(data.session?.user.email ?? null);
+    let cancelled = false;
+    async function checar(session: { user: { id: string; email?: string | null } } | null) {
+      if (!session) {
+        if (!cancelled) {
+          setSessionEmail(null);
+          setChecking(false);
+        }
+        return;
+      }
+      const { obterPapel } = await import("@/lib/role");
+      const papel = await obterPapel(session.user.id);
+      if (cancelled) return;
+      if (papel === "gestor") {
+        navigate({ to: "/chamada" });
+        return;
+      }
+      setSessionEmail(session.user.email ?? null);
       setChecking(false);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setSessionEmail(session?.user.email ?? null);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
+    }
+    supabase.auth.getSession().then(({ data }) => checar(data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => checar(session));
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   if (checking) {
     return (
