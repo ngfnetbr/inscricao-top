@@ -186,6 +186,8 @@ function InscricaoPage() {
     setConfirmando(false);
   }
 
+  if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
+
   return (
     <div className="min-h-screen bg-background">
 
