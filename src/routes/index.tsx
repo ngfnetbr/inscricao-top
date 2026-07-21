@@ -16,6 +16,7 @@ import {
 import { cpfValido, formatarCpf, normalizarCpf } from "@/lib/format";
 import { StepBar } from "@/components/StepBar";
 import { OficinaCard } from "@/components/OficinaCard";
+import { TelaManutencao, useManutencao } from "@/components/Manutencao";
 import logoConversas from "@/assets/conversas-pedagogicas.png.asset.json";
 import logoNgf from "@/assets/ngf-solucoes-em-tecnologia.png.asset.json";
 
@@ -35,6 +36,7 @@ type Sucesso = {
 };
 
 function InscricaoPage() {
+  const { data: manutencao } = useManutencao();
   const [etapa, setEtapa] = useState<Etapa>(0);
 
   // Etapa 1
@@ -183,6 +185,8 @@ function InscricaoPage() {
     setSucesso(null);
     setConfirmando(false);
   }
+
+  if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
 
   return (
     <div className="min-h-screen bg-background">

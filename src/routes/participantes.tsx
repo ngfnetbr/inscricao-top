@@ -5,6 +5,7 @@ import { ArrowLeft, Users, Calendar, Loader2, ChevronDown, ChevronUp } from "luc
 
 import { supabase } from "@/integrations/supabase/client";
 import { listarParticipantesPublico, type ParticipantePublico } from "@/lib/oficinas";
+import { TelaManutencao, useManutencao } from "@/components/Manutencao";
 
 export const Route = createFileRoute("/participantes")({
   head: () => ({
@@ -58,6 +59,7 @@ function agrupar(rows: ParticipantePublico[]): OficinaAgrupada[] {
 }
 
 function ParticipantesPage() {
+  const { data: manutencao } = useManutencao();
   const { data = [], isLoading, refetch } = useQuery({
     queryKey: ["participantes-publicos"],
     queryFn: listarParticipantesPublico,
@@ -92,6 +94,8 @@ function ParticipantesPage() {
       return next;
     });
   }
+
+  if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
 
   return (
     <div className="min-h-screen bg-background">

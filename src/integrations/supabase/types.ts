@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      configuracoes: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          chave: string
+          valor: Json
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave: string
+          valor: Json
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave?: string
+          valor?: Json
+        }
+        Relationships: []
+      }
       gestor_oficinas: {
         Row: {
           criado_em: string
@@ -403,6 +424,10 @@ export type Database = {
           _oficina_id: string
           _tarde: boolean
         }
+        Returns: Json
+      }
+      set_manutencao: {
+        Args: { _ativo: boolean; _mensagem?: string }
         Returns: Json
       }
     }

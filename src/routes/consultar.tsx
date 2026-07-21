@@ -4,15 +4,20 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2, Search, CheckCircle2, Printer, GraduationCap } from "lucide-react";
 import { consultarInscricaoPorCpf, type ConsultaResultado } from "@/lib/oficinas";
 import { cpfValido, formatarCpf, normalizarCpf } from "@/lib/format";
+import { TelaManutencao, useManutencao } from "@/components/Manutencao";
 
 export const Route = createFileRoute("/consultar")({
   component: ConsultarPage,
 });
 
 function ConsultarPage() {
+  const { data: manutencao } = useManutencao();
   const [cpf, setCpf] = useState("");
   const [buscando, setBuscando] = useState(false);
   const [resultado, setResultado] = useState<ConsultaResultado | null>(null);
+
+  if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
+
 
   async function buscar() {
     if (!cpfValido(cpf)) {
