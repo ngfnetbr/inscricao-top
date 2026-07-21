@@ -66,6 +66,7 @@ function PainelCertificado() {
 
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkData, setBulkData] = useState<CertData[] | null>(null);
+  const [bulkQuery, setBulkQuery] = useState("");
   const [downloading, setDownloading] = useState<{ atual: number; total: number } | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
 
