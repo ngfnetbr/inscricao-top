@@ -11,9 +11,13 @@ export const Route = createFileRoute("/consultar")({
 });
 
 function ConsultarPage() {
+  const { data: manutencao } = useManutencao();
   const [cpf, setCpf] = useState("");
   const [buscando, setBuscando] = useState(false);
   const [resultado, setResultado] = useState<ConsultaResultado | null>(null);
+
+  if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
+
 
   async function buscar() {
     if (!cpfValido(cpf)) {
