@@ -6,7 +6,7 @@ import { ArrowLeft, Loader2, Plus, Trash2, Save, X, LogOut } from "lucide-react"
 
 import { supabase } from "@/integrations/supabase/client";
 import { listarOficinas, type OficinaComVagas } from "@/lib/oficinas";
-import { criarGestor, removerGestor, definirOficinasGestor } from "@/lib/gestores.functions";
+import { criarGestor, removerGestor, definirOficinasGestor, atualizarGestor } from "@/lib/gestores.functions";
 
 export const Route = createFileRoute("/admin/gestores")({
   component: AdminGestores,
