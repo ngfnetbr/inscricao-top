@@ -27,6 +27,7 @@ function AdminGestores() {
   const criarFn = useServerFn(criarGestor);
   const removerFn = useServerFn(removerGestor);
   const definirFn = useServerFn(definirOficinasGestor);
+  const atualizarFn = useServerFn(atualizarGestor);
 
   useEffect(() => {
     (async () => {
@@ -158,7 +159,7 @@ function AdminGestores() {
                       onClick={() => setEditando(g)}
                       className="rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-muted"
                     >
-                      Editar oficinas
+                      Editar
                     </button>
                     <button
                       onClick={() => excluir(g)}
@@ -189,11 +190,12 @@ function AdminGestores() {
       )}
 
       {editando && (
-        <ModalEditarOficinas
+        <ModalEditarGestor
           gestor={editando}
           oficinas={oficinas}
           onFechar={() => setEditando(null)}
-          onSalvar={async (ids) => {
+          onSalvar={async ({ nome, senha, ids }) => {
+            await atualizarFn({ data: { userId: editando.user_id, nome, senha } });
             await definirFn({ data: { userId: editando.user_id, oficinaIds: ids } });
             setEditando(null);
             carregar();
@@ -290,7 +292,7 @@ function ModalNovoGestor({
   );
 }
 
-function ModalEditarOficinas({
+function ModalEditarGestor({
   gestor,
   oficinas,
   onFechar,
@@ -299,39 +301,69 @@ function ModalEditarOficinas({
   gestor: Gestor;
   oficinas: OficinaComVagas[];
   onFechar: () => void;
-  onSalvar: (ids: string[]) => Promise<void>;
+  onSalvar: (v: { nome: string; senha: string; ids: string[] }) => Promise<void>;
 }) {
+  const [nome, setNome] = useState(gestor.nome ?? "");
+  const [senha, setSenha] = useState("");
   const [sel, setSel] = useState<string[]>(gestor.oficinas.map((o) => o.id));
   const [salvando, setSalvando] = useState(false);
 
   return (
-    <ModalShell titulo={`Oficinas de ${gestor.email}`} onFechar={onFechar}>
-      <ListaOficinas
-        oficinas={oficinas}
-        selecionadas={sel}
-        onToggle={(id) => setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))}
-      />
-      <div className="mt-4 flex justify-end gap-2">
-        <button onClick={onFechar} className="rounded-lg border border-border bg-card px-3 py-2 text-sm">
-          Cancelar
-        </button>
-        <button
-          disabled={salvando}
-          onClick={async () => {
-            setSalvando(true);
-            try {
-              await onSalvar(sel);
-              toast.success("Atribuições atualizadas.");
-            } catch {
-              toast.error("Falha ao salvar.");
-            } finally {
-              setSalvando(false);
-            }
-          }}
-          className="brand-gradient inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
-        >
-          {salvando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar
-        </button>
+    <ModalShell titulo={`Editar ${gestor.email}`} onFechar={onFechar}>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium">Nome do gestor</label>
+          <input
+            type="text"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Nova senha (opcional)</label>
+          <input
+            type="text"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            placeholder="Deixe em branco para manter"
+            className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">Mínimo 6 caracteres.</p>
+        </div>
+        <ListaOficinas
+          oficinas={oficinas}
+          selecionadas={sel}
+          onToggle={(id) => setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))}
+        />
+        <div className="flex justify-end gap-2">
+          <button onClick={onFechar} className="rounded-lg border border-border bg-card px-3 py-2 text-sm">
+            Cancelar
+          </button>
+          <button
+            disabled={salvando}
+            onClick={async () => {
+              const s = senha.trim();
+              if (s && s.length < 6) {
+                toast.error("Senha deve ter no mínimo 6 caracteres.");
+                return;
+              }
+              setSalvando(true);
+              try {
+                await onSalvar({ nome: nome.trim(), senha: s, ids: sel });
+                toast.success("Gestor atualizado.");
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : "Falha ao salvar.";
+                toast.error(msg);
+              } finally {
+                setSalvando(false);
+              }
+            }}
+            className="brand-gradient inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            {salvando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar
+          </button>
+        </div>
       </div>
     </ModalShell>
   );
