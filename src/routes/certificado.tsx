@@ -235,6 +235,60 @@ function PainelCertificado() {
     }
   }
 
+  async function baixarUm(c: CertData) {
+    setSingleDownloading(c.cpf);
+    const holder = document.createElement("div");
+    holder.style.cssText = "position:fixed;left:-10000px;top:0;pointer-events:none;";
+    document.body.appendChild(holder);
+    const { renderCertificadoOffscreen } = await import("@/lib/certificado-render");
+    try {
+      const node = renderCertificadoOffscreen(holder, c, certificadoBase.url);
+      const img = node.querySelector("img");
+      if (img && !img.complete) {
+        await new Promise<void>((res) => {
+          img.addEventListener("load", () => res(), { once: true });
+          img.addEventListener("error", () => res(), { once: true });
+        });
+      }
+      await new Promise((r) => setTimeout(r, 60));
+      const canvas = await html2canvas(node, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        logging: false,
+        onclone: (doc) => {
+          const style = doc.createElement("style");
+          style.textContent = `
+            html, body { background: #ffffff !important; }
+            *, *::before, *::after {
+              color: #111111 !important;
+              border-color: #000000 !important;
+              outline-color: #000000 !important;
+              text-decoration-color: #000000 !important;
+              caret-color: #000000 !important;
+              box-shadow: none !important;
+              text-shadow: none !important;
+            }
+            *:not(.cert-safe):not(.cert-safe *) { background-color: transparent !important; background-image: none !important; }
+            .cert-safe { background-color: #ffffff !important; }
+          `;
+          doc.head.appendChild(style);
+        },
+      });
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, pageH);
+      pdf.save(`${(c.cpf || "").replace(/\D/g, "")}.pdf`);
+      node.remove();
+    } catch (e) {
+      console.error(e);
+      toast.error("Falha ao baixar certificado.");
+    } finally {
+      holder.remove();
+      setSingleDownloading(null);
+    }
+  }
 
   const oficinasComHoras = useMemo(() => {
     if (resultado?.status !== "encontrado") return [];
