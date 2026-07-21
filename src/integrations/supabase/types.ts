@@ -346,11 +346,14 @@ export type Database = {
         Returns: {
           data: string
           dia: string
+          horas: number
+          manha: boolean
           ministrante: string
           nome: string
           oficina_id: string
           ordem: number
           publico_alvo: string
+          tarde: boolean
           titulo: string
         }[]
       }
