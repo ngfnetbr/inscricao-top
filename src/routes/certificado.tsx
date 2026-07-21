@@ -1,26 +1,69 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Loader2, Printer, Search } from "lucide-react";
+import { ArrowLeft, Loader2, Printer, Search, Files } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { consultarInscricaoPorCpf, type ConsultaResultado } from "@/lib/oficinas";
 import { cpfValido, formatarCpf, normalizarCpf } from "@/lib/format";
 import { abreviarNome } from "@/lib/nome";
 import certificadoBase from "@/assets/certificado-base.png.asset.json";
 
-type SearchParams = { cpf?: string };
+type SearchParams = { cpf?: string; bulk?: boolean };
 
 export const Route = createFileRoute("/certificado")({
   validateSearch: (s: Record<string, unknown>): SearchParams => ({
     cpf: typeof s.cpf === "string" ? s.cpf : undefined,
+    bulk: s.bulk === true || s.bulk === "1" || s.bulk === "true" ? true : undefined,
   }),
   component: CertificadoPage,
 });
 
+type CertData = {
+  nome: string;
+  cpf: string;
+  oficinas: { titulo: string; horas: number }[];
+  totalHoras: number;
+};
+
 function CertificadoPage() {
-  const { cpf: cpfSearch } = Route.useSearch();
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
+  const [checking, setChecking] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSessionEmail(data.session?.user.email ?? null);
+      setChecking(false);
+      if (!data.session) {
+        navigate({ to: "/admin" });
+      }
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setSessionEmail(session?.user.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [navigate]);
+
+  if (checking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+  if (!sessionEmail) return null;
+
+  return <PainelCertificado />;
+}
+
+function PainelCertificado() {
+  const { cpf: cpfSearch, bulk } = Route.useSearch();
   const [cpf, setCpf] = useState(cpfSearch ?? "");
   const [buscando, setBuscando] = useState(false);
   const [resultado, setResultado] = useState<ConsultaResultado | null>(null);
+
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkData, setBulkData] = useState<CertData[] | null>(null);
 
   async function buscar(valor: string) {
     if (!cpfValido(valor)) {
@@ -49,51 +92,118 @@ function CertificadoPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cpfSearch]);
 
+  async function carregarTodos() {
+    setBulkLoading(true);
+    try {
+      const [insR, prR, ofR] = await Promise.all([
+        supabase.from("inscricoes").select("id,nome,cpf,oficina_quinta_id,oficina_sexta_id"),
+        supabase.from("presencas").select("inscricao_id,oficina_id,manha,tarde"),
+        supabase.from("oficinas").select("id,titulo"),
+      ]);
+      if (insR.error) throw insR.error;
+      if (prR.error) throw prR.error;
+      if (ofR.error) throw ofR.error;
+
+      const ofMap = new Map((ofR.data ?? []).map((o) => [o.id, o.titulo]));
+      const prMap = new Map<string, { manha: boolean; tarde: boolean }>();
+      for (const p of prR.data ?? []) {
+        prMap.set(`${p.inscricao_id}:${p.oficina_id}`, {
+          manha: !!p.manha,
+          tarde: !!p.tarde,
+        });
+      }
+      const horasDe = (insId: string, ofId: string) => {
+        const p = prMap.get(`${insId}:${ofId}`);
+        if (!p) return 0;
+        return (p.manha ? 4 : 0) + (p.tarde ? 4 : 0);
+      };
+
+      const certs: CertData[] = [];
+      for (const i of insR.data ?? []) {
+        const oficinas: { titulo: string; horas: number }[] = [];
+        const hQ = horasDe(i.id, i.oficina_quinta_id);
+        const hS = horasDe(i.id, i.oficina_sexta_id);
+        if (hQ > 0) oficinas.push({ titulo: ofMap.get(i.oficina_quinta_id) ?? "", horas: hQ });
+        if (hS > 0) oficinas.push({ titulo: ofMap.get(i.oficina_sexta_id) ?? "", horas: hS });
+        if (oficinas.length === 0) continue;
+        certs.push({
+          nome: i.nome,
+          cpf: i.cpf,
+          oficinas,
+          totalHoras: hQ + hS,
+        });
+      }
+      certs.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+      setBulkData(certs);
+      if (certs.length === 0) toast.info("Nenhum participante com presença registrada.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Falha ao carregar certificados.");
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (bulk) carregarTodos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bulk]);
+
   const oficinasComHoras = useMemo(() => {
     if (resultado?.status !== "encontrado") return [];
     return [resultado.oficina_quinta, resultado.oficina_sexta].filter((o) => o.horas > 0);
   }, [resultado]);
-
   const totalHoras = oficinasComHoras.reduce((s, o) => s + o.horas, 0);
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/60 bg-card/60 backdrop-blur print:hidden">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <Link to="/" className="text-sm font-semibold">Conversas Pedagógicas</Link>
-          <Link to="/" className="text-xs text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="inline h-3 w-3" /> Início
-          </Link>
+          <div className="text-sm font-semibold">Certificados (Admin)</div>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/certificado"
+              search={{ bulk: true }}
+              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-xs hover:bg-muted"
+            >
+              <Files className="h-4 w-4" /> Baixar todos
+            </Link>
+            <Link to="/admin" className="text-xs text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="inline h-3 w-3" /> Painel
+            </Link>
+          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6 print:p-0 print:max-w-none">
-        <section className="card-elevated p-6 print:hidden">
-          <h1 className="text-2xl font-bold">Certificado</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Digite seu CPF para gerar o certificado. Só entram no certificado as oficinas com presença registrada.
-          </p>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-            <input
-              inputMode="numeric"
-              placeholder="000.000.000-00"
-              value={formatarCpf(cpf)}
-              onChange={(e) => setCpf(normalizarCpf(e.target.value))}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); buscar(cpf); } }}
-              className="h-12 flex-1 rounded-xl border border-input bg-background px-4 text-lg outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
-            />
-            <button
-              onClick={() => buscar(cpf)}
-              disabled={buscando || normalizarCpf(cpf).length !== 11}
-              className="brand-gradient inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-            >
-              {buscando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-              Gerar certificado
-            </button>
-          </div>
-        </section>
+        {!bulk && (
+          <section className="card-elevated p-6 print:hidden">
+            <h1 className="text-2xl font-bold">Gerar certificado individual</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Digite o CPF do participante. Só entram no certificado as oficinas com presença registrada.
+            </p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <input
+                inputMode="numeric"
+                placeholder="000.000.000-00"
+                value={formatarCpf(cpf)}
+                onChange={(e) => setCpf(normalizarCpf(e.target.value))}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); buscar(cpf); } }}
+                className="h-12 flex-1 rounded-xl border border-input bg-background px-4 text-lg outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+              />
+              <button
+                onClick={() => buscar(cpf)}
+                disabled={buscando || normalizarCpf(cpf).length !== 11}
+                className="brand-gradient inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                {buscando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                Gerar certificado
+              </button>
+            </div>
+          </section>
+        )}
 
-        {resultado?.status === "encontrado" && oficinasComHoras.length === 0 && (
+        {!bulk && resultado?.status === "encontrado" && oficinasComHoras.length === 0 && (
           <div className="card-elevated mt-6 p-6 text-center print:hidden">
             <p className="text-sm text-muted-foreground">
               Ainda não há presença registrada nas oficinas. O certificado será gerado após a chamada.
@@ -101,7 +211,7 @@ function CertificadoPage() {
           </div>
         )}
 
-        {resultado?.status === "encontrado" && oficinasComHoras.length > 0 && (
+        {!bulk && resultado?.status === "encontrado" && oficinasComHoras.length > 0 && (
           <>
             <div className="mt-6 flex justify-end print:hidden">
               <button
@@ -111,8 +221,7 @@ function CertificadoPage() {
                 <Printer className="h-4 w-4" /> Imprimir / Salvar PDF
               </button>
             </div>
-
-            <div className="mt-4 flex justify-center print:mt-0">
+            <div className="cert-print-area mt-4 flex justify-center print:mt-0">
               <Certificado
                 nome={resultado.nome}
                 cpf={cpf}
@@ -122,7 +231,62 @@ function CertificadoPage() {
             </div>
           </>
         )}
+
+        {bulk && (
+          <section className="print:hidden">
+            <div className="card-elevated flex flex-wrap items-center justify-between gap-3 p-6">
+              <div>
+                <h1 className="text-2xl font-bold">Certificados em massa</h1>
+                <p className="text-sm text-muted-foreground">
+                  {bulkLoading
+                    ? "Carregando..."
+                    : bulkData
+                      ? `${bulkData.length} certificado(s) prontos para impressão.`
+                      : ""}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={carregarTodos}
+                  disabled={bulkLoading}
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted disabled:opacity-50"
+                >
+                  <Loader2 className={`h-4 w-4 ${bulkLoading ? "animate-spin" : "hidden"}`} />
+                  Recarregar
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  disabled={!bulkData || bulkData.length === 0}
+                  className="brand-gradient inline-flex items-center gap-2 rounded-xl px-6 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                >
+                  <Printer className="h-4 w-4" /> Imprimir todos / Salvar PDF
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {bulk && bulkData && (
+          <div className="cert-print-area mt-4 space-y-6 print:mt-0 print:space-y-0">
+            {bulkData.map((c, idx) => (
+              <div key={idx} className="cert-page-wrap flex justify-center">
+                <Certificado nome={c.nome} cpf={c.cpf} oficinas={c.oficinas} totalHoras={c.totalHoras} />
+              </div>
+            ))}
+          </div>
+        )}
       </main>
+
+      <style>{`
+        @media print {
+          @page { size: A4 landscape; margin: 0; }
+          html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+          body > *:not(.__print-root) { }
+          header, nav, .print\\:hidden { display: none !important; }
+          .cert-page-wrap { page-break-after: always; break-after: page; }
+          .cert-page-wrap:last-child { page-break-after: auto; break-after: auto; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -189,51 +353,23 @@ function Certificado({
           color: #111;
           font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
         }
-        .cert-intro {
-          font-size: 22px;
-          margin: 0;
-          color: #222;
-        }
+        .cert-intro { font-size: 22px; margin: 0; color: #222; }
         .cert-nome {
-          font-size: 32px;
-          font-weight: 800;
-          margin: 4px 0 2px 0;
-          line-height: 1.1;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          font-size: 32px; font-weight: 800;
+          margin: 4px 0 2px 0; line-height: 1.1;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .cert-cpf {
-          font-size: 18px;
-          margin: 0 0 22px 0;
-          color: #222;
-        }
-        .cert-body {
-          font-size: 20px;
-          margin: 0 0 8px 0;
-        }
+        .cert-cpf { font-size: 18px; margin: 0 0 22px 0; color: #222; }
+        .cert-body { font-size: 20px; margin: 0 0 8px 0; }
         .cert-lista {
-          list-style: disc;
-          padding-left: 22px;
-          margin: 0 0 14px 0;
-          font-size: 18px;
-          line-height: 1.4;
+          list-style: disc; padding-left: 22px;
+          margin: 0 0 14px 0; font-size: 18px; line-height: 1.4;
         }
         .cert-lista li { margin-bottom: 4px; }
-        .cert-total {
-          font-size: 18px;
-          margin: 0;
-          line-height: 1.45;
-        }
+        .cert-total { font-size: 18px; margin: 0; line-height: 1.45; }
 
         @media print {
-          @page { size: A4 landscape; margin: 0; }
-          html, body { background: #fff !important; }
-          body * { visibility: hidden !important; }
-          .certificado-page, .certificado-page * { visibility: visible !important; }
           .certificado-page {
-            position: fixed !important;
-            top: 0; left: 0;
             width: 100vw !important;
             height: 100vh !important;
             max-width: none !important;
