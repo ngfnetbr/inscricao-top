@@ -110,6 +110,7 @@ function ConsultarPage() {
                       {resultado.oficina_quinta.publico_alvo}
                     </dd>
                   )}
+                  <PresencaLinha p={resultado.oficina_quinta} />
                 </div>
                 <div>
                   <dt className="text-xs uppercase tracking-wider text-muted-foreground">Sexta-feira, 24/07</dt>
@@ -120,6 +121,11 @@ function ConsultarPage() {
                       {resultado.oficina_sexta.publico_alvo}
                     </dd>
                   )}
+                  <PresencaLinha p={resultado.oficina_sexta} />
+                </div>
+                <div className="border-t border-border pt-3">
+                  <dt className="text-xs uppercase tracking-wider text-muted-foreground">Total de horas</dt>
+                  <dd className="text-lg font-bold text-primary">{resultado.total_horas}h</dd>
                 </div>
               </dl>
             </div>
@@ -149,6 +155,26 @@ function ConsultarPage() {
           </section>
         )}
       </main>
+    </div>
+  );
+}
+
+function PresencaLinha({ p }: { p: { manha: boolean; tarde: boolean; horas: number } }) {
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <span
+        className={`rounded px-2 py-0.5 text-[11px] font-semibold ${p.manha ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"}`}
+      >
+        Manhã: {p.manha ? "presente" : "ausente"}
+      </span>
+      <span
+        className={`rounded px-2 py-0.5 text-[11px] font-semibold ${p.tarde ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"}`}
+      >
+        Tarde: {p.tarde ? "presente" : "ausente"}
+      </span>
+      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold tabular-nums text-primary">
+        {p.horas}h
+      </span>
     </div>
   );
 }
