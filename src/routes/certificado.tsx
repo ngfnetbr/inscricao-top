@@ -450,18 +450,54 @@ function PainelCertificado() {
 
 
         {bulk && bulkFiltered && (
-          <div className="cert-print-area mt-4 space-y-6 print:mt-0 print:space-y-0">
-            {bulkFiltered.map((c, idx) => (
-              <div key={idx} className="cert-page-wrap flex justify-center">
-                <Certificado nome={c.nome} cpf={c.cpf} oficinas={c.oficinas} totalHoras={c.totalHoras} />
-              </div>
-            ))}
+          <>
             {bulkFiltered.length === 0 && (
-              <p className="text-center text-sm text-muted-foreground print:hidden">
+              <p className="mt-6 text-center text-sm text-muted-foreground print:hidden">
                 Nenhum certificado encontrado para "{bulkQuery}".
               </p>
             )}
-          </div>
+
+            {/* Mobile: lista simplificada com download individual */}
+            {bulkFiltered.length > 0 && (
+              <div className="mt-4 space-y-3 md:hidden print:hidden">
+                {bulkFiltered.map((c) => (
+                  <div
+                    key={c.cpf}
+                    className="card-elevated flex items-center justify-between gap-3 p-4"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold">{c.nome}</p>
+                      <p className="text-sm text-muted-foreground">{formatarCpf(c.cpf)}</p>
+                      <p className="text-xs text-muted-foreground">{c.totalHoras}h</p>
+                    </div>
+                    <button
+                      onClick={() => baixarUm(c)}
+                      disabled={singleDownloading === c.cpf || !!downloading}
+                      className="brand-gradient inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                    >
+                      {singleDownloading === c.cpf ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      Baixar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Desktop: visualização prévia para impressão / download em massa */}
+            {bulkFiltered.length > 0 && (
+              <div className="cert-print-area mt-4 hidden space-y-6 md:block print:mt-0 print:block print:space-y-0">
+                {bulkFiltered.map((c, idx) => (
+                  <div key={idx} className="cert-page-wrap flex justify-center">
+                    <Certificado nome={c.nome} cpf={c.cpf} oficinas={c.oficinas} totalHoras={c.totalHoras} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </main>
 
