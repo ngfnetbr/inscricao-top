@@ -29,11 +29,23 @@ function AdminGestores() {
   const definirFn = useServerFn(definirOficinasGestor);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setEmail(data.session?.user.email ?? null);
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        setChecking(false);
+        navigate({ to: "/admin" });
+        return;
+      }
+      const { obterPapel } = await import("@/lib/role");
+      const papel = await obterPapel(data.session.user.id);
+      if (papel !== "admin") {
+        setChecking(false);
+        navigate({ to: "/chamada" });
+        return;
+      }
+      setEmail(data.session.user.email ?? null);
       setChecking(false);
-      if (!data.session) navigate({ to: "/admin" });
-    });
+    })();
   }, [navigate]);
 
   async function carregar() {
@@ -44,7 +56,7 @@ function AdminGestores() {
         listarOficinas(true),
       ]);
       if (error) throw error;
-      setGestores((data ?? []) as Gestor[]);
+      setGestores((data ?? []) as unknown as Gestor[]);
       setOficinas(ofs);
     } catch {
       toast.error("Falha ao carregar gestores.");
