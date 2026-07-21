@@ -250,15 +250,15 @@ function InscricaoPage() {
 function EtapaLanding({ onInscrever }: { onInscrever: () => void }) {
   return (
     <section className="card-elevated p-6 sm:p-10 text-center">
-      <div className="brand-gradient mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl text-primary-foreground shadow-sm">
-        <GraduationCap className="h-8 w-8" />
-      </div>
-      <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-        Oficinas de Estudo e Planejamento
-      </h2>
+      <img
+        src={logoConversas.url}
+        alt="Conversas Pedagógicas — Rede Municipal de Educação de Nova Londrina"
+        className="mx-auto mb-6 w-full max-w-md"
+      />
       <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
         Escolha uma oficina para cada dia (23 e 24 de julho) e garanta sua vaga.
       </p>
+
 
       <div className="mx-auto mt-8 flex max-w-md flex-col gap-3">
         <button
