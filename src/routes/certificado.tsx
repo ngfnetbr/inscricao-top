@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Loader2, Printer, Search, Files } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Loader2, Printer, Search, Files, Download } from "lucide-react";
 import { toast } from "sonner";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import { consultarInscricaoPorCpf, type ConsultaResultado } from "@/lib/oficinas";
 import { cpfValido, formatarCpf, normalizarCpf } from "@/lib/format";
@@ -64,6 +66,8 @@ function PainelCertificado() {
 
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkData, setBulkData] = useState<CertData[] | null>(null);
+  const [downloading, setDownloading] = useState<{ atual: number; total: number } | null>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
 
   async function buscar(valor: string) {
     if (!cpfValido(valor)) {
@@ -148,6 +152,50 @@ function PainelCertificado() {
     if (bulk) carregarTodos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bulk]);
+
+  async function baixarTodosPdf() {
+    if (!bulkData || bulkData.length === 0) {
+      toast.error("Nenhum certificado carregado.");
+      return;
+    }
+    if (!captureRef.current) return;
+    setDownloading({ atual: 0, total: bulkData.length });
+    const holder = captureRef.current;
+    const { renderCertificadoOffscreen } = await import("@/lib/certificado-render");
+    try {
+      for (let i = 0; i < bulkData.length; i++) {
+        const c = bulkData[i];
+        setDownloading({ atual: i + 1, total: bulkData.length });
+        const node = renderCertificadoOffscreen(holder, c, certificadoBase.url);
+        // aguardar imagem carregar
+        const img = node.querySelector("img");
+        if (img && !img.complete) {
+          await new Promise<void>((res) => {
+            img.addEventListener("load", () => res(), { once: true });
+            img.addEventListener("error", () => res(), { once: true });
+          });
+        }
+        await new Promise((r) => setTimeout(r, 60));
+        const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
+        const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, pageH);
+        const cpfLimpo = (c.cpf || "").replace(/\D/g, "");
+        const nomeLimpo = c.nome.replace(/[\\/:*?"<>|]/g, "").trim();
+        pdf.save(`${nomeLimpo} ${cpfLimpo}.pdf`);
+        node.remove();
+        await new Promise((r) => setTimeout(r, 30));
+      }
+      toast.success(`${bulkData.length} certificado(s) baixado(s).`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Falha ao gerar PDFs em lote.");
+    } finally {
+      setDownloading(null);
+    }
+  }
+
 
   const oficinasComHoras = useMemo(() => {
     if (resultado?.status !== "encontrado") return [];
@@ -245,26 +293,50 @@ function PainelCertificado() {
                       : ""}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={carregarTodos}
-                  disabled={bulkLoading}
+                  disabled={bulkLoading || !!downloading}
                   className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted disabled:opacity-50"
                 >
                   <Loader2 className={`h-4 w-4 ${bulkLoading ? "animate-spin" : "hidden"}`} />
                   Recarregar
                 </button>
                 <button
-                  onClick={() => window.print()}
-                  disabled={!bulkData || bulkData.length === 0}
+                  onClick={baixarTodosPdf}
+                  disabled={!bulkData || bulkData.length === 0 || !!downloading}
                   className="brand-gradient inline-flex items-center gap-2 rounded-xl px-6 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
                 >
-                  <Printer className="h-4 w-4" /> Imprimir todos / Salvar PDF
+                  {downloading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Baixando {downloading.atual}/{downloading.total}...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" /> Baixar todos (PDFs)
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  disabled={!bulkData || bulkData.length === 0 || !!downloading}
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted disabled:opacity-50"
+                >
+                  <Printer className="h-4 w-4" /> Imprimir
                 </button>
               </div>
             </div>
           </section>
         )}
+
+        {/* holder off-screen usado por baixarTodosPdf */}
+        <div
+          ref={captureRef}
+          aria-hidden
+          style={{ position: "fixed", left: "-10000px", top: 0, pointerEvents: "none" }}
+        />
+
 
         {bulk && bulkData && (
           <div className="cert-print-area mt-4 space-y-6 print:mt-0 print:space-y-0">
@@ -302,7 +374,7 @@ function Certificado({
   oficinas: { titulo: string; horas: number }[];
   totalHoras: number;
 }) {
-  const nomeExibicao = abreviarNome(nome, 28);
+  const nomeExibicao = abreviarNome(nome, 32);
   const umaOficina = oficinas.length === 1;
 
   return (
@@ -347,26 +419,27 @@ function Certificado({
         }
         .cert-overlay {
           position: absolute;
-          top: 32%;
-          left: 8%;
-          width: 42%;
+          top: 38%;
+          left: 10%;
+          width: 80%;
+          text-align: center;
           color: #111;
           font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
         }
-        .cert-intro { font-size: 22px; margin: 0; color: #222; }
+        .cert-intro { font-size: 16px; margin: 0; color: #222; }
         .cert-nome {
-          font-size: 32px; font-weight: 800;
-          margin: 4px 0 2px 0; line-height: 1.1;
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          font-size: 24px; font-weight: 800;
+          margin: 4px 0 2px 0; line-height: 1.15;
         }
-        .cert-cpf { font-size: 18px; margin: 0 0 22px 0; color: #222; }
-        .cert-body { font-size: 20px; margin: 0 0 8px 0; }
+        .cert-cpf { font-size: 13px; margin: 0 0 16px 0; color: #222; }
+        .cert-body { font-size: 14px; margin: 0 0 6px 0; }
         .cert-lista {
-          list-style: disc; padding-left: 22px;
-          margin: 0 0 14px 0; font-size: 18px; line-height: 1.4;
+          list-style: none; padding: 0;
+          margin: 0 auto 10px auto; font-size: 14px; line-height: 1.4;
+          max-width: 640px;
         }
-        .cert-lista li { margin-bottom: 4px; }
-        .cert-total { font-size: 18px; margin: 0; line-height: 1.45; }
+        .cert-lista li { margin-bottom: 3px; }
+        .cert-total { font-size: 13px; margin: 0; line-height: 1.45; }
 
         @media print {
           .certificado-page {

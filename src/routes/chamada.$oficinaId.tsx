@@ -54,6 +54,7 @@ function ChamadaOficina() {
     novo.horas = (novo.manha ? 4 : 0) + (novo.tarde ? 4 : 0);
     setItens((prev) => prev.map((i) => (i.inscricao_id === item.inscricao_id ? novo : i)));
     setSalvando(item.inscricao_id);
+    const loadingId = toast.loading(`Salvando ${campo === "manha" ? "manhã" : "tarde"} — ${item.nome}...`);
     try {
       const res = await marcarPresenca({
         inscricaoId: item.inscricao_id,
@@ -61,9 +62,12 @@ function ChamadaOficina() {
         manha: novo.manha,
         tarde: novo.tarde,
       });
-      if (res.status !== "sucesso") throw new Error();
-    } catch {
-      toast.error("Não foi possível salvar presença.");
+      if (res.status !== "sucesso") throw new Error(res.status);
+      const acao = valor ? "presente" : "sem presença";
+      toast.success(`${item.nome}: ${campo === "manha" ? "manhã" : "tarde"} marcada como ${acao}.`, { id: loadingId });
+    } catch (e) {
+      console.error(e);
+      toast.error(`Não foi possível salvar a presença de ${item.nome}.`, { id: loadingId });
       // reverter
       setItens((prev) => prev.map((i) => (i.inscricao_id === item.inscricao_id ? item : i)));
     } finally {
