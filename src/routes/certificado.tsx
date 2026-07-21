@@ -59,7 +59,7 @@ function CertificadoPage() {
 }
 
 function PainelCertificado() {
-  const { cpf: cpfSearch, bulk } = Route.useSearch();
+  const { cpf: cpfSearch } = Route.useSearch();
   const [cpf, setCpf] = useState(cpfSearch ?? "");
   const [buscando, setBuscando] = useState(false);
   const [resultado, setResultado] = useState<ConsultaResultado | null>(null);
@@ -69,7 +69,10 @@ function PainelCertificado() {
   const [bulkQuery, setBulkQuery] = useState("");
   const [downloading, setDownloading] = useState<{ atual: number; total: number } | null>(null);
   const [singleDownloading, setSingleDownloading] = useState<string | null>(null);
+  const [preview, setPreview] = useState<CertData | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
+  const bulk = true;
+
 
   async function buscar(valor: string) {
     if (!cpfValido(valor)) {
@@ -469,18 +472,28 @@ function PainelCertificado() {
                       <p className="text-sm text-muted-foreground">{formatarCpf(c.cpf)}</p>
                       <p className="text-xs text-muted-foreground">{c.totalHoras}h</p>
                     </div>
-                    <button
-                      onClick={() => baixarUm(c)}
-                      disabled={singleDownloading === c.cpf || !!downloading}
-                      className="brand-gradient inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-                    >
-                      {singleDownloading === c.cpf ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Download className="h-4 w-4" />
-                      )}
-                      Baixar
-                    </button>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        onClick={() => setPreview(c)}
+                        disabled={!!downloading}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted disabled:opacity-50"
+                      >
+                        <Search className="h-4 w-4" /> Visualizar
+                      </button>
+                      <button
+                        onClick={() => baixarUm(c)}
+                        disabled={singleDownloading === c.cpf || !!downloading}
+                        className="brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                      >
+                        {singleDownloading === c.cpf ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4" />
+                        )}
+                        Baixar
+                      </button>
+                    </div>
+
                   </div>
                 ))}
               </div>
@@ -499,6 +512,53 @@ function PainelCertificado() {
           </>
         )}
       </main>
+
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 print:hidden"
+          onClick={() => setPreview(null)}
+        >
+          <div
+            className="max-h-[95vh] w-full max-w-6xl overflow-auto rounded-xl bg-white p-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="text-sm font-semibold text-neutral-800">
+                {preview.nome} — {formatarCpf(preview.cpf)}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => baixarUm(preview)}
+                  disabled={singleDownloading === preview.cpf}
+                  className="brand-gradient inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                >
+                  {singleDownloading === preview.cpf ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  Baixar PDF
+                </button>
+                <button
+                  onClick={() => setPreview(null)}
+                  className="rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <Certificado
+                nome={preview.nome}
+                cpf={preview.cpf}
+                oficinas={preview.oficinas}
+                totalHoras={preview.totalHoras}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
 
       <style>{`
         @media print {
