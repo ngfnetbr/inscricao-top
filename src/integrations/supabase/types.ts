@@ -185,27 +185,27 @@ export type Database = {
           atualizado_por: string | null
           id: string
           inscricao_id: string
-          manha: boolean
+          manha: boolean | null
           oficina_id: string
-          tarde: boolean
+          tarde: boolean | null
         }
         Insert: {
           atualizado_em?: string
           atualizado_por?: string | null
           id?: string
           inscricao_id: string
-          manha?: boolean
+          manha?: boolean | null
           oficina_id: string
-          tarde?: boolean
+          tarde?: boolean | null
         }
         Update: {
           atualizado_em?: string
           atualizado_por?: string | null
           id?: string
           inscricao_id?: string
-          manha?: boolean
+          manha?: boolean | null
           oficina_id?: string
-          tarde?: boolean
+          tarde?: boolean | null
         }
         Relationships: [
           {
