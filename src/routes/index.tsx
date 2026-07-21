@@ -169,25 +169,8 @@ function InscricaoPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border/60 bg-card/60 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="brand-gradient flex h-10 w-10 items-center justify-center rounded-xl text-primary-foreground shadow-sm">
-              <GraduationCap className="h-5 w-5" />
-            </div>
-            <div className="leading-tight">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">SME · Estudo e Planejamento</p>
-              <h1 className="text-base font-semibold text-foreground">Inscrição nas Oficinas</h1>
-            </div>
-          </div>
-          <Link
-            to="/admin"
-            className="text-xs text-muted-foreground hover:text-foreground"
-          >
-            Área administrativa
-          </Link>
-        </div>
-      </header>
+
+
 
       <main className="mx-auto max-w-3xl px-4 py-6 pb-24">
         {etapa >= 1 && etapa < 5 && (
