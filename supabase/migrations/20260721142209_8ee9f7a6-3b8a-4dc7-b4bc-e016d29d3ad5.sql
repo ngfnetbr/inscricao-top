@@ -1,0 +1,1 @@
+ALTER TABLE public.presencas ALTER COLUMN manha DROP NOT NULL; ALTER TABLE public.presencas ALTER COLUMN tarde DROP NOT NULL;
