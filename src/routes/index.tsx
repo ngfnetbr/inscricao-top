@@ -218,7 +218,9 @@ function InscricaoPage() {
 
         {etapa === 2 && (
           <EtapaOficinas
-            titulo="Escolha uma oficina para quinta-feira, 23/07."
+            badge="Quinta-feira · 23/07"
+            badgeTone="quinta"
+            titulo="Escolha sua oficina do 1º dia"
             oficinas={oficinasQuinta}
             selecionadaId={oficinaQuintaId}
             outraSelecionadaId={oficinaSextaId}
@@ -231,7 +233,9 @@ function InscricaoPage() {
 
         {etapa === 3 && (
           <EtapaOficinas
-            titulo="Escolha uma oficina para sexta-feira, 24/07."
+            badge="Sexta-feira · 24/07"
+            badgeTone="sexta"
+            titulo="Escolha sua oficina do 2º dia"
             oficinas={oficinasSexta}
             selecionadaId={oficinaSextaId}
             outraSelecionadaId={oficinaQuintaId}
