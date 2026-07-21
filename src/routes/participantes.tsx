@@ -20,6 +20,8 @@ export const Route = createFileRoute("/participantes")({
   notFoundComponent: () => <div className="p-6">Página não encontrada.</div>,
 });
 
+type ParticipanteItem = { nome: string; manha: boolean; tarde: boolean; horas: number };
+
 type OficinaAgrupada = {
   oficina_id: string;
   dia: "quinta" | "sexta";
@@ -28,7 +30,7 @@ type OficinaAgrupada = {
   ministrante: string;
   publico_alvo: string | null;
   ordem: number;
-  nomes: string[];
+  participantes: ParticipanteItem[];
 };
 
 function agrupar(rows: ParticipantePublico[]): OficinaAgrupada[] {
@@ -44,11 +46,11 @@ function agrupar(rows: ParticipantePublico[]): OficinaAgrupada[] {
         ministrante: r.ministrante,
         publico_alvo: r.publico_alvo,
         ordem: r.ordem,
-        nomes: [],
+        participantes: [],
       };
       map.set(r.oficina_id, g);
     }
-    if (r.nome) g.nomes.push(r.nome);
+    if (r.nome) g.participantes.push({ nome: r.nome, manha: r.manha, tarde: r.tarde, horas: r.horas });
   }
   return Array.from(map.values()).sort(
     (a, b) => (a.dia === b.dia ? a.ordem - b.ordem : a.dia === "quinta" ? -1 : 1),
@@ -188,7 +190,7 @@ function SecaoDia({
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
-                    {g.nomes.length} {g.nomes.length === 1 ? "inscrito" : "inscritos"}
+                    {g.participantes.length} {g.participantes.length === 1 ? "inscrito" : "inscritos"}
                   </span>
                   {aberta ? (
                     <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -200,14 +202,31 @@ function SecaoDia({
 
               {aberta && (
                 <div className="border-t border-border px-5 pb-5">
-                  {g.nomes.length === 0 ? (
+                  {g.participantes.length === 0 ? (
                     <p className="pt-4 text-sm text-muted-foreground">Nenhum participante inscrito ainda.</p>
                   ) : (
                     <ol className="grid gap-1 pt-4 text-sm text-foreground sm:grid-cols-2">
-                      {g.nomes.map((nome, i) => (
-                        <li key={i} className="flex gap-2 rounded-lg bg-muted/40 px-3 py-1.5">
+                      {g.participantes.map((p, i) => (
+                        <li key={i} className="flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-1.5">
                           <span className="text-muted-foreground tabular-nums">{i + 1}.</span>
-                          <span className="truncate">{nome}</span>
+                          <span className="min-w-0 flex-1 truncate">{p.nome}</span>
+                          <span className="flex shrink-0 items-center gap-1">
+                            <span
+                              title="Manhã"
+                              className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${p.manha ? "bg-success/20 text-success" : "bg-muted text-muted-foreground/60"}`}
+                            >
+                              M
+                            </span>
+                            <span
+                              title="Tarde"
+                              className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${p.tarde ? "bg-success/20 text-success" : "bg-muted text-muted-foreground/60"}`}
+                            >
+                              T
+                            </span>
+                            <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold tabular-nums text-primary">
+                              {p.horas}h
+                            </span>
+                          </span>
                         </li>
                       ))}
                     </ol>

@@ -86,6 +86,9 @@ export type ParticipantePublico = {
   publico_alvo: string | null;
   ordem: number;
   nome: string | null;
+  manha: boolean;
+  tarde: boolean;
+  horas: number;
 };
 
 export async function listarParticipantesPublico(): Promise<ParticipantePublico[]> {
