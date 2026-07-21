@@ -137,7 +137,8 @@ function AdminGestores() {
               <li key={g.user_id} className="p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-medium text-foreground">{g.email}</p>
+                    <p className="font-medium text-foreground">{g.nome || "(sem nome)"}</p>
+                    <p className="text-xs text-muted-foreground">{g.email}</p>
                     <div className="mt-2 flex flex-wrap gap-1">
                       {g.oficinas.length === 0 && (
                         <span className="text-xs text-muted-foreground">Nenhuma oficina atribuída</span>
