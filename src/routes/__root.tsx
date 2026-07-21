@@ -78,24 +78,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Inscrição nas Oficinas — Estudo e Planejamento SME" },
+      { title: "Estudo e Planejamento SME" },
       {
         name: "description",
         content:
-          "Sistema de inscrição nas oficinas do Estudo e Planejamento da Secretaria Municipal de Educação.",
+          "Sistema de inscrição nas oficinas do Estudo e Planejamento da Secretaria Municipal de Educação de Nova Londrina.",
       },
-      { property: "og:title", content: "Inscrição nas Oficinas — SME" },
+      { property: "og:title", content: "Estudo e Planejamento SME" },
       {
         property: "og:description",
         content:
-          "Escolha suas oficinas do Estudo e Planejamento da Secretaria Municipal de Educação.",
+          "Sistema de inscrição nas oficinas do Estudo e Planejamento da Secretaria Municipal de Educação de Nova Londrina.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Estudo e Planejamento SME" },
+      { name: "twitter:description", content: "Sistema de inscrição nas oficinas do Estudo e Planejamento da Secretaria Municipal de Educação de Nova Londrina." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/g61LO1w7QVgYk6GG67nMjG4CLkL2/social-images/social-1784639857234-Design_sem_nome_(6).webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/g61LO1w7QVgYk6GG67nMjG4CLkL2/social-images/social-1784639857234-Design_sem_nome_(6).webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
       {
