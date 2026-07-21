@@ -15,6 +15,8 @@ import {
 import { cpfValido, formatarCpf, normalizarCpf } from "@/lib/format";
 import { StepBar } from "@/components/StepBar";
 import { OficinaCard } from "@/components/OficinaCard";
+import logoConversas from "@/assets/conversas-pedagogicas.png.asset.json";
+
 
 export const Route = createFileRoute("/")({
   component: InscricaoPage,
