@@ -49,12 +49,13 @@ function ChamadaOficina() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email, oficinaId]);
 
-  async function alternar(item: ChamadaItem, campo: "manha" | "tarde", valor: boolean) {
+  async function alterar(item: ChamadaItem, campo: "manha" | "tarde", valor: boolean | null) {
     const novo = { ...item, [campo]: valor };
-    novo.horas = (novo.manha ? 4 : 0) + (novo.tarde ? 4 : 0);
+    novo.horas = (novo.manha === true ? 4 : 0) + (novo.tarde === true ? 4 : 0);
     setItens((prev) => prev.map((i) => (i.inscricao_id === item.inscricao_id ? novo : i)));
     setSalvando(item.inscricao_id);
-    const loadingId = toast.loading(`Salvando ${campo === "manha" ? "manhã" : "tarde"} — ${item.nome}...`);
+    const rotulo = campo === "manha" ? "manhã" : "tarde";
+    const loadingId = toast.loading(`Salvando ${rotulo} — ${item.nome}...`);
     try {
       const res = await marcarPresenca({
         inscricaoId: item.inscricao_id,
@@ -63,12 +64,11 @@ function ChamadaOficina() {
         tarde: novo.tarde,
       });
       if (res.status !== "sucesso") throw new Error(res.status);
-      const acao = valor ? "presente" : "sem presença";
-      toast.success(`${item.nome}: ${campo === "manha" ? "manhã" : "tarde"} marcada como ${acao}.`, { id: loadingId });
+      const acao = valor === true ? "presente" : valor === false ? "falta" : "sem marcação";
+      toast.success(`${item.nome}: ${rotulo} — ${acao}.`, { id: loadingId });
     } catch (e) {
       console.error(e);
       toast.error(`Não foi possível salvar a presença de ${item.nome}.`, { id: loadingId });
-      // reverter
       setItens((prev) => prev.map((i) => (i.inscricao_id === item.inscricao_id ? item : i)));
     } finally {
       setSalvando(null);
@@ -84,14 +84,14 @@ function ChamadaOficina() {
   }, [filtro, itens]);
 
   const totais = useMemo(() => {
-    let m = 0, t = 0, ambos = 0, faltas = 0;
+    let presentes = 0, faltas = 0, pendentes = 0, concluidos = 0;
     for (const i of itens) {
-      if (i.manha) m++;
-      if (i.tarde) t++;
-      if (i.manha && i.tarde) ambos++;
-      if (!i.manha && !i.tarde) faltas++;
+      if (i.manha === true || i.tarde === true) presentes++;
+      if (i.manha === false || i.tarde === false) faltas++;
+      if (i.manha === null && i.tarde === null) pendentes++;
+      if (i.manha === true && i.tarde === true) concluidos++;
     }
-    return { m, t, ambos, faltas };
+    return { presentes, faltas, pendentes, concluidos };
   }, [itens]);
 
   return (
