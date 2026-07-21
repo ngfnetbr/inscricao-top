@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      gestor_oficinas: {
+        Row: {
+          criado_em: string
+          id: string
+          oficina_id: string
+          user_id: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          oficina_id: string
+          user_id: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          oficina_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gestor_oficinas_oficina_id_fkey"
+            columns: ["oficina_id"]
+            isOneToOne: false
+            referencedRelation: "oficinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gestor_oficinas_oficina_id_fkey"
+            columns: ["oficina_id"]
+            isOneToOne: false
+            referencedRelation: "oficinas_com_vagas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inscricoes: {
         Row: {
           cpf: string
@@ -143,6 +179,79 @@ export type Database = {
         }
         Relationships: []
       }
+      presencas: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          id: string
+          inscricao_id: string
+          manha: boolean
+          oficina_id: string
+          tarde: boolean
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          id?: string
+          inscricao_id: string
+          manha?: boolean
+          oficina_id: string
+          tarde?: boolean
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          id?: string
+          inscricao_id?: string
+          manha?: boolean
+          oficina_id?: string
+          tarde?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presencas_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "inscricoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "presencas_oficina_id_fkey"
+            columns: ["oficina_id"]
+            isOneToOne: false
+            referencedRelation: "oficinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "presencas_oficina_id_fkey"
+            columns: ["oficina_id"]
+            isOneToOne: false
+            referencedRelation: "oficinas_com_vagas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          criado_em: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       oficinas_com_vagas: {
@@ -173,6 +282,14 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_listar_gestores: {
+        Args: never
+        Returns: {
+          email: string
+          oficinas: Json
+          user_id: string
+        }[]
+      }
       buscar_pessoa_por_cpf: {
         Args: { _cpf: string }
         Returns: {
@@ -190,6 +307,40 @@ export type Database = {
         Returns: Json
       }
       consultar_inscricao_por_cpf: { Args: { _cpf: string }; Returns: Json }
+      gerencia_oficina: {
+        Args: { _oficina_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      listar_chamada: {
+        Args: { _oficina_id: string }
+        Returns: {
+          cpf: string
+          horas: number
+          inscricao_id: string
+          manha: boolean
+          nome: string
+          tarde: boolean
+        }[]
+      }
+      listar_minhas_oficinas: {
+        Args: never
+        Returns: {
+          data: string
+          dia: string
+          id: string
+          limite_vagas: number
+          ministrante: string
+          publico_alvo: string
+          titulo: string
+        }[]
+      }
       listar_participantes_publico: {
         Args: never
         Returns: {
@@ -203,9 +354,18 @@ export type Database = {
           titulo: string
         }[]
       }
+      marcar_presenca: {
+        Args: {
+          _inscricao_id: string
+          _manha: boolean
+          _oficina_id: string
+          _tarde: boolean
+        }
+        Returns: Json
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "gestor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -332,6 +492,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "gestor"],
+    },
   },
 } as const
