@@ -12,7 +12,7 @@ export const Route = createFileRoute("/admin/gestores")({
   component: AdminGestores,
 });
 
-type Gestor = { user_id: string; email: string; oficinas: { id: string; titulo: string; dia: string }[] };
+type Gestor = { user_id: string; email: string; nome: string | null; oficinas: { id: string; titulo: string; dia: string }[] };
 
 function AdminGestores() {
   const [checking, setChecking] = useState(true);
