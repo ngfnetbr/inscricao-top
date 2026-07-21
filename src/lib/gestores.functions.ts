@@ -123,3 +123,54 @@ export const definirOficinasGestor = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+export const atualizarGestor = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => {
+    const d = data as { userId?: string; nome?: string; senha?: string };
+    if (!d.userId) throw new Error("userId obrigatório");
+    const senha = (d.senha ?? "").trim();
+    if (senha && senha.length < 6) throw new Error("Senha deve ter no mínimo 6 caracteres");
+    return {
+      userId: d.userId,
+      nome: (d.nome ?? "").trim() || null,
+      senha: senha || null,
+    };
+  })
+  .handler(async ({ data, context }) => {
+    const admin = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!admin.data) throw new Error("Não autorizado");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const upd = await supabaseAdmin
+      .from("user_roles")
+      .update({ nome: data.nome })
+      .eq("user_id", data.userId)
+      .eq("role", "gestor");
+    if (upd.error) throw new Error(`Falha ao atualizar nome: ${upd.error.message}`);
+
+    if (data.senha) {
+      const SUPABASE_URL = process.env.SUPABASE_URL!;
+      const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${data.userId}`, {
+        method: "PUT",
+        headers: {
+          apikey: SERVICE_KEY,
+          Authorization: `Bearer ${SERVICE_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password: data.senha }),
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`Falha ao atualizar senha: ${t}`);
+      }
+    }
+    return { ok: true };
+  });
