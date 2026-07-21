@@ -1,0 +1,1 @@
+CREATE POLICY "Autenticados podem atualizar pessoas" ON public.pessoas FOR UPDATE TO authenticated USING (true) WITH CHECK (true);

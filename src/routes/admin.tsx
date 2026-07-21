@@ -261,6 +261,12 @@ function Painel({ email }: { email: string }) {
           </div>
           <div className="flex items-center gap-2 text-sm">
             <span className="hidden text-muted-foreground sm:inline">{email}</span>
+            <Link
+              to="/admin/pessoas"
+              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+            >
+              <Users className="h-4 w-4" /> Pessoas
+            </Link>
             <button
               onClick={() => supabase.auth.signOut()}
               className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
@@ -268,6 +274,7 @@ function Painel({ email }: { email: string }) {
               <LogOut className="h-4 w-4" /> Sair
             </button>
           </div>
+
         </div>
       </header>
 
