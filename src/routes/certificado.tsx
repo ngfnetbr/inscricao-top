@@ -177,7 +177,30 @@ function PainelCertificado() {
           });
         }
         await new Promise((r) => setTimeout(r, 60));
-        const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
+        const canvas = await html2canvas(node, {
+          scale: 2,
+          backgroundColor: "#ffffff",
+          useCORS: true,
+          logging: false,
+          onclone: (doc) => {
+            const style = doc.createElement("style");
+            style.textContent = `
+              html, body { background: #ffffff !important; }
+              *, *::before, *::after {
+                color: #111111 !important;
+                border-color: #000000 !important;
+                outline-color: #000000 !important;
+                text-decoration-color: #000000 !important;
+                caret-color: #000000 !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+              }
+              *:not(.cert-safe):not(.cert-safe *) { background-color: transparent !important; background-image: none !important; }
+              .cert-safe { background-color: #ffffff !important; }
+            `;
+            doc.head.appendChild(style);
+          },
+        });
         const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
         const pageW = pdf.internal.pageSize.getWidth();
         const pageH = pdf.internal.pageSize.getHeight();
