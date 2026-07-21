@@ -282,6 +282,15 @@ function EtapaLanding({ onInscrever }: { onInscrever: () => void }) {
           <Users className="h-5 w-5" /> Ver participantes por oficina
         </Link>
       </div>
+
+      <div className="mt-8 flex justify-center">
+        <Link
+          to="/admin"
+          className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground"
+        >
+          Área administrativa
+        </Link>
+      </div>
     </section>
   );
 }
