@@ -182,8 +182,8 @@ function AdminGestores() {
             setModalNovo(false);
             carregar();
           }}
-          criar={async (email, senha, ids) => {
-            await criarFn({ data: { email, senha, oficinaIds: ids } });
+          criar={async (nome, email, senha, ids) => {
+            await criarFn({ data: { nome, email, senha, oficinaIds: ids } });
           }}
         />
       )}
