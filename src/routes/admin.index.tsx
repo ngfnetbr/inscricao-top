@@ -281,6 +281,12 @@ function Painel({ email }: { email: string }) {
             >
               <Users className="h-4 w-4" /> Pessoas
             </Link>
+            <Link
+              to="/certificado"
+              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+            >
+              <ClipboardList className="h-4 w-4" /> Certificados
+            </Link>
             <button
               onClick={() => supabase.auth.signOut()}
               className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
