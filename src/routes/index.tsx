@@ -201,8 +201,14 @@ function InscricaoPage() {
 
       <main className="mx-auto max-w-3xl px-3 py-4 pb-20 sm:px-4 sm:py-6 sm:pb-24">
         {etapa >= 1 && etapa < 5 && (
-          <div className="mb-6">
+          <div className="mb-6 space-y-3">
             <StepBar atual={etapa} total={4} labels={labels.slice(0, 4)} />
+            <button
+              onClick={voltarAoInicio}
+              className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              <Home className="h-3.5 w-3.5" /> Voltar ao início
+            </button>
           </div>
         )}
 
