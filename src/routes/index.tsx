@@ -16,6 +16,8 @@ import { cpfValido, formatarCpf, normalizarCpf } from "@/lib/format";
 import { StepBar } from "@/components/StepBar";
 import { OficinaCard } from "@/components/OficinaCard";
 import logoConversas from "@/assets/conversas-pedagogicas.png.asset.json";
+import logoNgf from "@/assets/ngf-solucoes-em-tecnologia.png.asset.json";
+
 
 
 export const Route = createFileRoute("/")({
@@ -240,8 +242,18 @@ function InscricaoPage() {
         )}
 
         {etapa === 5 && sucesso && <EtapaSucesso dados={sucesso} />}
+
+        <footer className="mt-10 flex flex-col items-center justify-center gap-3 border-t border-border/60 pt-8 text-center sm:mt-14 sm:pt-10">
+          <p className="text-xs font-medium text-muted-foreground">Desenvolvido por:</p>
+          <img
+            src={logoNgf.url}
+            alt="NGF - Soluções em Tecnologia"
+            className="h-10 w-auto object-contain opacity-90 sm:h-12"
+          />
+        </footer>
       </main>
     </div>
+
   );
 }
 
