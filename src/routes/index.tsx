@@ -36,7 +36,7 @@ type Sucesso = {
 };
 
 function InscricaoPage() {
-  const { data: manutencao } = useManutencao();
+  const { data: manutencao, isLoading: manutencaoLoading } = useManutencao();
   const [etapa, setEtapa] = useState<Etapa>(0);
 
   // Etapa 1
