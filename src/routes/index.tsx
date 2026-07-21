@@ -236,9 +236,9 @@ function InscricaoPage() {
 
         {etapa === 2 && (
           <EtapaOficinas
-            badge="Quinta-feira · 23/07"
+            badge="quinta-feira, 23/07"
             badgeTone="quinta"
-            titulo="Escolha sua oficina do 1º dia"
+            titulo="Escolha uma oficina para"
             oficinas={oficinasQuinta}
             selecionadaId={oficinaQuintaId}
             outraSelecionadaId={oficinaSextaId}
@@ -251,9 +251,9 @@ function InscricaoPage() {
 
         {etapa === 3 && (
           <EtapaOficinas
-            badge="Sexta-feira · 24/07"
+            badge="sexta-feira, 24/07"
             badgeTone="sexta"
-            titulo="Escolha sua oficina do 2º dia"
+            titulo="Escolha uma oficina para"
             oficinas={oficinasSexta}
             selecionadaId={oficinaSextaId}
             outraSelecionadaId={oficinaQuintaId}
@@ -494,12 +494,14 @@ function EtapaOficinas(props: {
 
   return (
     <section>
-      {badge && (
-        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide shadow-sm ${badgeClasses}`}>
-          {badge}
-        </span>
-      )}
-      <h2 className="mt-2 text-xl font-bold tracking-tight text-foreground sm:text-2xl">{titulo}</h2>
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">{titulo}</h2>
+        {badge && (
+          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide shadow-sm ${badgeClasses}`}>
+            {badge}
+          </span>
+        )}
+      </div>
       <p className="mt-1 text-sm text-muted-foreground">Toque no cartão para selecionar uma oficina.</p>
 
 
