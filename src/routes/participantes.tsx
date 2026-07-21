@@ -95,6 +95,8 @@ function ParticipantesPage() {
     });
   }
 
+  if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b border-border/60 bg-card/80 backdrop-blur">
