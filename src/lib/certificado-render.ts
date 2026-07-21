@@ -18,7 +18,7 @@ export function renderCertificadoOffscreen(
   c: CertificadoData,
   imgUrl: string,
 ): HTMLDivElement {
-  const nomeExibicao = abreviarNome(c.nome, 32);
+  const nomeExibicao = abreviarNome(c.nome, 32).toUpperCase();
   const umaOficina = c.oficinas.length === 1;
   const cpfFmt = formatarCpf(c.cpf);
 

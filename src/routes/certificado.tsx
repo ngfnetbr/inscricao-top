@@ -525,7 +525,7 @@ function Certificado({
   oficinas: { titulo: string; horas: number }[];
   totalHoras: number;
 }) {
-  const nomeExibicao = abreviarNome(nome, 32);
+  const nomeExibicao = abreviarNome(nome, 32).toUpperCase();
   const umaOficina = oficinas.length === 1;
 
   return (
