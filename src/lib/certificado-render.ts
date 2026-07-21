@@ -34,12 +34,12 @@ export function renderCertificadoOffscreen(
     "position:relative;width:1400px;height:990px;background:#fff;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#111;";
   node.innerHTML = `
     <img src="${imgUrl}" alt="" crossorigin="anonymous" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;" />
-    <div style="position:absolute;top:38%;left:10%;width:80%;text-align:center;">
+    <div style="position:absolute;top:40%;left:50%;transform:translateX(-50%);width:60%;max-width:860px;text-align:center;">
       <p style="font-size:18px;margin:0;color:#222;">Certificamos que</p>
-      <p style="font-size:26px;font-weight:800;margin:4px 0 2px 0;line-height:1.15;">${escapeHtml(nomeExibicao)},</p>
+      <p style="font-size:26px;font-weight:800;margin:4px 0 2px 0;line-height:1.15;overflow-wrap:break-word;">${escapeHtml(nomeExibicao)},</p>
       <p style="font-size:15px;margin:0 0 18px 0;color:#222;">inscrito(a) no CPF ${escapeHtml(cpfFmt)}</p>
       <p style="font-size:16px;margin:0 0 8px 0;">participou ${umaOficina ? "da oficina:" : "das oficinas:"}</p>
-      <ul style="list-style:none;padding:0;margin:0 auto 12px auto;font-size:15px;line-height:1.4;max-width:900px;">${oficinasHtml}</ul>
+      <ul style="list-style:none;padding:0;margin:0 auto 12px auto;font-size:15px;line-height:1.4;">${oficinasHtml}</ul>
       <p style="font-size:15px;margin:0;line-height:1.45;">totalizando carga horária de <strong>${c.totalHoras} horas</strong>, realizado nos dias 23 e 24 de julho de 2026.</p>
     </div>
   `;
