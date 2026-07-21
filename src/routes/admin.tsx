@@ -1,7 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, LogOut, Download, RefreshCw, ArrowLeft, Pencil, Trash2, Plus, Minus, Power, X, Save } from "lucide-react";
+import {
+  Loader2,
+  LogOut,
+  Download,
+  RefreshCw,
+  ArrowLeft,
+  Pencil,
+  Trash2,
+  Plus,
+  Minus,
+  Power,
+  X,
+  Save,
+  ChevronDown,
+  ChevronUp,
+  Users,
+  Settings,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { formatarCpf } from "@/lib/format";
@@ -108,6 +125,8 @@ function Painel({ email }: { email: string }) {
   const [carregando, setCarregando] = useState(true);
   const [filtro, setFiltro] = useState("");
   const [editando, setEditando] = useState<Inscricao | null>(null);
+  const [editandoOficina, setEditandoOficina] = useState<OficinaComVagas | null>(null);
+  const [oficinaAberta, setOficinaAberta] = useState<string | null>(null);
 
   const mapaOficinas = useMemo(() => {
     const m = new Map<string, OficinaComVagas>();
@@ -147,22 +166,6 @@ function Painel({ email }: { email: string }) {
     if (error) toast.error("Não foi possível atualizar vagas.");
     else {
       toast.success(`Vagas de "${o.titulo}" agora: ${novo}`);
-      carregar();
-    }
-  }
-
-  async function definirVagas(o: OficinaComVagas) {
-    const entrada = window.prompt(`Novo limite de vagas para "${o.titulo}" (mínimo ${o.inscritos})`, String(o.limite_vagas));
-    if (!entrada) return;
-    const n = parseInt(entrada, 10);
-    if (!Number.isFinite(n) || n < o.inscritos) {
-      toast.error(`O limite deve ser um número maior ou igual a ${o.inscritos}.`);
-      return;
-    }
-    const { error } = await supabase.from("oficinas").update({ limite_vagas: n }).eq("id", o.id);
-    if (error) toast.error("Não foi possível atualizar vagas.");
-    else {
-      toast.success("Vagas atualizadas.");
       carregar();
     }
   }
@@ -216,6 +219,21 @@ function Painel({ email }: { email: string }) {
 
   const quinta = oficinas.filter((o) => o.dia === "quinta");
   const sexta = oficinas.filter((o) => o.dia === "sexta");
+
+  // participantes agrupados por oficina
+  const participantesPorOficina = useMemo(() => {
+    const m = new Map<string, Inscricao[]>();
+    inscricoes.forEach((i) => {
+      for (const oid of [i.oficina_quinta_id, i.oficina_sexta_id]) {
+        const arr = m.get(oid) ?? [];
+        arr.push(i);
+        m.set(oid, arr);
+      }
+    });
+    // ordenar por nome
+    m.forEach((arr) => arr.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")));
+    return m;
+  }, [inscricoes]);
 
   const inscricoesFiltradas = useMemo(() => {
     const f = filtro.trim().toLowerCase();
@@ -276,17 +294,23 @@ function Painel({ email }: { email: string }) {
           <OcupacaoLista
             titulo="Quinta-feira"
             oficinas={quinta}
+            participantesPorOficina={participantesPorOficina}
+            oficinaAberta={oficinaAberta}
+            setOficinaAberta={setOficinaAberta}
             onMais={(o) => ajustarVagas(o, 1)}
             onMenos={(o) => ajustarVagas(o, -1)}
-            onEditar={definirVagas}
+            onEditar={setEditandoOficina}
             onAlternar={alternarAtiva}
           />
           <OcupacaoLista
             titulo="Sexta-feira"
             oficinas={sexta}
+            participantesPorOficina={participantesPorOficina}
+            oficinaAberta={oficinaAberta}
+            setOficinaAberta={setOficinaAberta}
             onMais={(o) => ajustarVagas(o, 1)}
             onMenos={(o) => ajustarVagas(o, -1)}
-            onEditar={definirVagas}
+            onEditar={setEditandoOficina}
             onAlternar={alternarAtiva}
           />
         </div>
@@ -380,6 +404,17 @@ function Painel({ email }: { email: string }) {
           }}
         />
       )}
+
+      {editandoOficina && (
+        <ModalEditarOficina
+          oficina={editandoOficina}
+          onFechar={() => setEditandoOficina(null)}
+          onSalvo={() => {
+            setEditandoOficina(null);
+            carregar();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -387,6 +422,9 @@ function Painel({ email }: { email: string }) {
 function OcupacaoLista({
   titulo,
   oficinas,
+  participantesPorOficina,
+  oficinaAberta,
+  setOficinaAberta,
   onMais,
   onMenos,
   onEditar,
@@ -394,6 +432,9 @@ function OcupacaoLista({
 }: {
   titulo: string;
   oficinas: OficinaComVagas[];
+  participantesPorOficina: Map<string, Inscricao[]>;
+  oficinaAberta: string | null;
+  setOficinaAberta: (id: string | null) => void;
   onMais: (o: OficinaComVagas) => void;
   onMenos: (o: OficinaComVagas) => void;
   onEditar: (o: OficinaComVagas) => void;
@@ -406,12 +447,17 @@ function OcupacaoLista({
       <ul className="space-y-4">
         {oficinas.map((o) => {
           const pct = Math.min(100, Math.round((o.inscritos / Math.max(1, o.limite_vagas)) * 100));
+          const aberta = oficinaAberta === o.id;
+          const participantes = participantesPorOficina.get(o.id) ?? [];
           return (
             <li key={o.id} className={o.ativa ? "" : "opacity-60"}>
               <div className="mb-1 flex items-start justify-between gap-2 text-sm">
                 <div className="min-w-0">
                   <p className="truncate font-medium text-foreground">{o.titulo}</p>
                   <p className="truncate text-xs text-muted-foreground">{o.ministrante}</p>
+                  {o.publico_alvo && (
+                    <p className="mt-0.5 truncate text-[11px] text-primary/80">{o.publico_alvo}</p>
+                  )}
                 </div>
                 <span className={o.lotada ? "shrink-0 font-semibold text-destructive" : "shrink-0 text-muted-foreground"}>
                   {o.inscritos}/{o.limite_vagas}
@@ -443,7 +489,7 @@ function OcupacaoLista({
                   onClick={() => onEditar(o)}
                   className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-card px-2 text-xs hover:bg-muted"
                 >
-                  <Pencil className="h-3 w-3" /> Limite
+                  <Settings className="h-3 w-3" /> Editar
                 </button>
                 <button
                   onClick={() => onAlternar(o)}
@@ -451,7 +497,31 @@ function OcupacaoLista({
                 >
                   <Power className="h-3 w-3" /> {o.ativa ? "Ativa" : "Inativa"}
                 </button>
+                <button
+                  onClick={() => setOficinaAberta(aberta ? null : o.id)}
+                  className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-card px-2 text-xs hover:bg-muted"
+                >
+                  <Users className="h-3 w-3" /> Participantes ({participantes.length})
+                  {aberta ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </button>
               </div>
+              {aberta && (
+                <div className="mt-2 rounded-lg border border-border bg-muted/30 p-3">
+                  {participantes.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">Nenhum inscrito ainda.</p>
+                  ) : (
+                    <ol className="space-y-1 text-sm">
+                      {participantes.map((p, idx) => (
+                        <li key={p.id} className="flex items-baseline gap-2">
+                          <span className="w-5 shrink-0 text-right text-xs text-muted-foreground">{idx + 1}.</span>
+                          <span className="flex-1 text-foreground">{p.nome}</span>
+                          <span className="text-xs text-muted-foreground">{formatarCpf(p.cpf)}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </div>
+              )}
             </li>
           );
         })}
@@ -509,10 +579,7 @@ function ModalEditar({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onFechar}>
-      <div
-        className="card-elevated w-full max-w-lg p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="card-elevated w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-foreground">Editar inscrição</h3>
           <button onClick={onFechar} className="rounded-md p-1 hover:bg-muted">
@@ -556,6 +623,165 @@ function ModalEditar({
             </option>
           ))}
         </select>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            onClick={onFechar}
+            className="inline-flex h-10 items-center gap-1 rounded-lg border border-border bg-card px-4 text-sm hover:bg-muted"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={salvar}
+            disabled={salvando}
+            className="brand-gradient inline-flex h-10 items-center gap-1 rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            {salvando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModalEditarOficina({
+  oficina,
+  onFechar,
+  onSalvo,
+}: {
+  oficina: OficinaComVagas;
+  onFechar: () => void;
+  onSalvo: () => void;
+}) {
+  const [titulo, setTitulo] = useState(oficina.titulo);
+  const [ministrante, setMinistrante] = useState(oficina.ministrante);
+  const [publicoAlvo, setPublicoAlvo] = useState(oficina.publico_alvo ?? "");
+  const [dia, setDia] = useState<"quinta" | "sexta">(oficina.dia);
+  const [data, setData] = useState(oficina.data);
+  const [limite, setLimite] = useState(oficina.limite_vagas);
+  const [ordem, setOrdem] = useState(oficina.ordem);
+  const [ativa, setAtiva] = useState(oficina.ativa);
+  const [salvando, setSalvando] = useState(false);
+
+  async function salvar() {
+    if (titulo.trim().length < 3) {
+      toast.error("Informe um título válido.");
+      return;
+    }
+    if (ministrante.trim().length < 2) {
+      toast.error("Informe o ministrante.");
+      return;
+    }
+    if (limite < oficina.inscritos) {
+      toast.error(`O limite não pode ser menor que ${oficina.inscritos} (já inscritos).`);
+      return;
+    }
+    setSalvando(true);
+    const { error } = await supabase
+      .from("oficinas")
+      .update({
+        titulo: titulo.trim(),
+        ministrante: ministrante.trim(),
+        publico_alvo: publicoAlvo.trim() || null,
+        dia,
+        data,
+        limite_vagas: limite,
+        ordem,
+        ativa,
+      })
+      .eq("id", oficina.id);
+    setSalvando(false);
+    if (error) {
+      toast.error("Não foi possível salvar a oficina.");
+      return;
+    }
+    toast.success("Oficina atualizada.");
+    onSalvo();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onFechar}>
+      <div className="card-elevated w-full max-w-lg max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">Editar oficina</h3>
+          <button onClick={onFechar} className="rounded-md p-1 hover:bg-muted">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <label className="block text-sm font-medium">Título</label>
+        <input
+          value={titulo}
+          onChange={(e) => setTitulo(e.target.value)}
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        />
+
+        <label className="mt-4 block text-sm font-medium">Ministrante</label>
+        <input
+          value={ministrante}
+          onChange={(e) => setMinistrante(e.target.value)}
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        />
+
+        <label className="mt-4 block text-sm font-medium">Público-alvo</label>
+        <input
+          value={publicoAlvo}
+          onChange={(e) => setPublicoAlvo(e.target.value)}
+          placeholder="Ex.: Geral, Educação Infantil..."
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        />
+
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium">Dia</label>
+            <select
+              value={dia}
+              onChange={(e) => setDia(e.target.value as "quinta" | "sexta")}
+              className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+            >
+              <option value="quinta">Quinta-feira</option>
+              <option value="sexta">Sexta-feira</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Data</label>
+            <input
+              type="date"
+              value={data}
+              onChange={(e) => setData(e.target.value)}
+              className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium">
+              Limite de vagas <span className="text-xs text-muted-foreground">(mín. {oficina.inscritos})</span>
+            </label>
+            <input
+              type="number"
+              min={oficina.inscritos}
+              value={limite}
+              onChange={(e) => setLimite(parseInt(e.target.value, 10) || 0)}
+              className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Ordem</label>
+            <input
+              type="number"
+              value={ordem}
+              onChange={(e) => setOrdem(parseInt(e.target.value, 10) || 0)}
+              className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+            />
+          </div>
+        </div>
+
+        <label className="mt-4 flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={ativa} onChange={(e) => setAtiva(e.target.checked)} className="h-4 w-4" />
+          <span>Oficina ativa (visível para inscrição)</span>
+        </label>
 
         <div className="mt-6 flex justify-end gap-2">
           <button
