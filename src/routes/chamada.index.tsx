@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { listarMinhasOficinas, type MinhaOficina } from "@/lib/chamada";
 
-export const Route = createFileRoute("/chamada")({
+export const Route = createFileRoute("/chamada/")({
   component: ChamadaIndex,
 });
 
