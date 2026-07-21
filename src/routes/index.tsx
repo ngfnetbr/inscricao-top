@@ -471,9 +471,17 @@ function Etapa1(props: {
           </label>
           <input
             id="nome"
+            name={`nome-${Math.random().toString(36).slice(2)}`}
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             placeholder="Seu nome completo"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="words"
+            spellCheck={false}
+            data-lpignore="true"
+            data-form-type="other"
+            data-1p-ignore="true"
             className="h-12 w-full rounded-xl border border-input bg-background px-4 outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/40"
           />
           <div className="mt-4 flex justify-end">
