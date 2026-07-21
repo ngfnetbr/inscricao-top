@@ -419,11 +419,9 @@ function Certificado({
         }
         .cert-overlay {
           position: absolute;
-          top: 40%;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 60%;
-          max-width: 620px;
+          top: 30%;
+          left: 4%;
+          width: 48%;
           text-align: center;
           color: #111;
           font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
