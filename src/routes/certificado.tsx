@@ -394,13 +394,18 @@ function PainelCertificado() {
         />
 
 
-        {bulk && bulkData && (
+        {bulk && bulkFiltered && (
           <div className="cert-print-area mt-4 space-y-6 print:mt-0 print:space-y-0">
-            {bulkData.map((c, idx) => (
+            {bulkFiltered.map((c, idx) => (
               <div key={idx} className="cert-page-wrap flex justify-center">
                 <Certificado nome={c.nome} cpf={c.cpf} oficinas={c.oficinas} totalHoras={c.totalHoras} />
               </div>
             ))}
+            {bulkFiltered.length === 0 && (
+              <p className="text-center text-sm text-muted-foreground print:hidden">
+                Nenhum certificado encontrado para "{bulkQuery}".
+              </p>
+            )}
           </div>
         )}
       </main>
