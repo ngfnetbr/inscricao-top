@@ -20,6 +20,8 @@ export const Route = createFileRoute("/participantes")({
   notFoundComponent: () => <div className="p-6">Página não encontrada.</div>,
 });
 
+type ParticipanteItem = { nome: string; manha: boolean; tarde: boolean; horas: number };
+
 type OficinaAgrupada = {
   oficina_id: string;
   dia: "quinta" | "sexta";
@@ -28,7 +30,7 @@ type OficinaAgrupada = {
   ministrante: string;
   publico_alvo: string | null;
   ordem: number;
-  nomes: string[];
+  participantes: ParticipanteItem[];
 };
 
 function agrupar(rows: ParticipantePublico[]): OficinaAgrupada[] {
@@ -44,11 +46,11 @@ function agrupar(rows: ParticipantePublico[]): OficinaAgrupada[] {
         ministrante: r.ministrante,
         publico_alvo: r.publico_alvo,
         ordem: r.ordem,
-        nomes: [],
+        participantes: [],
       };
       map.set(r.oficina_id, g);
     }
-    if (r.nome) g.nomes.push(r.nome);
+    if (r.nome) g.participantes.push({ nome: r.nome, manha: r.manha, tarde: r.tarde, horas: r.horas });
   }
   return Array.from(map.values()).sort(
     (a, b) => (a.dia === b.dia ? a.ordem - b.ordem : a.dia === "quinta" ? -1 : 1),
