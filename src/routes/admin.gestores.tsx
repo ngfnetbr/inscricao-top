@@ -215,7 +215,8 @@ function ModalNovoGestor({
       toast.success("Gestor criado.");
       onSalvo();
     } catch (err) {
-      toast.error("Falha ao criar gestor.");
+      const msg = err instanceof Error ? err.message : "Falha ao criar gestor.";
+      toast.error(msg);
     } finally {
       setSalvando(false);
     }
