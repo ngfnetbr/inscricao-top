@@ -327,7 +327,9 @@ function PainelCertificado() {
                   {bulkLoading
                     ? "Carregando..."
                     : bulkData
-                      ? `${bulkData.length} certificado(s) prontos para impressão.`
+                      ? bulkQuery.trim()
+                        ? `${bulkFiltered?.length ?? 0} de ${bulkData.length} certificado(s).`
+                        : `${bulkData.length} certificado(s) prontos para impressão.`
                       : ""}
                 </p>
               </div>
