@@ -75,6 +75,11 @@ function InscricaoPage() {
     };
   }, [refetch]);
 
+  // Sempre voltar ao topo ao mudar de etapa
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [etapa]);
+
   const oficinasQuinta = useMemo(() => oficinas.filter((o) => o.dia === "quinta"), [oficinas]);
   const oficinasSexta = useMemo(() => oficinas.filter((o) => o.dia === "sexta"), [oficinas]);
 
