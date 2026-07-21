@@ -172,7 +172,7 @@ function InscricaoPage() {
 
 
 
-      <main className="mx-auto max-w-3xl px-4 py-6 pb-24">
+      <main className="mx-auto max-w-3xl px-3 py-4 pb-20 sm:px-4 sm:py-6 sm:pb-24">
         {etapa >= 1 && etapa < 5 && (
           <div className="mb-6">
             <StepBar atual={etapa} total={4} labels={labels.slice(0, 4)} />
