@@ -206,8 +206,7 @@ function PainelCertificado() {
         const pageH = pdf.internal.pageSize.getHeight();
         pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, pageH);
         const cpfLimpo = (c.cpf || "").replace(/\D/g, "");
-        const nomeLimpo = c.nome.replace(/[\\/:*?"<>|]/g, "").trim();
-        pdf.save(`${nomeLimpo} ${cpfLimpo}.pdf`);
+        pdf.save(`${cpfLimpo}.pdf`);
         node.remove();
         await new Promise((r) => setTimeout(r, 30));
       }
