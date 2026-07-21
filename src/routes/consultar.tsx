@@ -110,6 +110,7 @@ function ConsultarPage() {
                       {resultado.oficina_quinta.publico_alvo}
                     </dd>
                   )}
+                  <PresencaLinha p={resultado.oficina_quinta} />
                 </div>
                 <div>
                   <dt className="text-xs uppercase tracking-wider text-muted-foreground">Sexta-feira, 24/07</dt>
@@ -120,6 +121,11 @@ function ConsultarPage() {
                       {resultado.oficina_sexta.publico_alvo}
                     </dd>
                   )}
+                  <PresencaLinha p={resultado.oficina_sexta} />
+                </div>
+                <div className="border-t border-border pt-3">
+                  <dt className="text-xs uppercase tracking-wider text-muted-foreground">Total de horas</dt>
+                  <dd className="text-lg font-bold text-primary">{resultado.total_horas}h</dd>
                 </div>
               </dl>
             </div>
