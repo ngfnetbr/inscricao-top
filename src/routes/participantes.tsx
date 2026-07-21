@@ -59,7 +59,7 @@ function agrupar(rows: ParticipantePublico[]): OficinaAgrupada[] {
 }
 
 function ParticipantesPage() {
-  const { data: manutencao } = useManutencao();
+  const { data: manutencao, isLoading: manutencaoLoading } = useManutencao();
   const { data = [], isLoading, refetch } = useQuery({
     queryKey: ["participantes-publicos"],
     queryFn: listarParticipantesPublico,
