@@ -193,6 +193,7 @@ function PainelCertificado() {
       console.error(e);
       toast.error("Falha ao gerar PDFs em lote.");
     } finally {
+      holder.remove();
       setDownloading(null);
     }
   }
