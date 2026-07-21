@@ -242,21 +242,31 @@ function Painel({ email }: { email: string }) {
     return m;
   }, [inscricoes]);
 
-  const inscricoesFiltradas = useMemo(() => {
-    const f = filtro.trim().toLowerCase();
-    if (!f) return inscricoes;
-    return inscricoes.filter((i) => {
-      const q = mapaOficinas.get(i.oficina_quinta_id);
-      const s = mapaOficinas.get(i.oficina_sexta_id);
-      return (
-        i.nome.toLowerCase().includes(f) ||
-        i.cpf.includes(f.replace(/\D/g, "")) ||
-        i.protocolo.toLowerCase().includes(f) ||
-        (q?.titulo.toLowerCase().includes(f) ?? false) ||
-        (s?.titulo.toLowerCase().includes(f) ?? false)
-      );
+  const statusPorInscricao = useMemo(() => {
+    const m = new Map<string, { horas: number; status: "sem_chamada" | "parcial" | "concluido"; qHoras: number; sHoras: number }>();
+    inscricoes.forEach((i) => {
+      const pq = presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_quinta_id);
+      const ps = presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_sexta_id);
+      const qHoras = (pq?.manha ? 4 : 0) + (pq?.tarde ? 4 : 0);
+      const sHoras = (ps?.manha ? 4 : 0) + (ps?.tarde ? 4 : 0);
+      const horas = qHoras + sHoras;
+      const status: "sem_chamada" | "parcial" | "concluido" =
+        !pq && !ps ? "sem_chamada" : horas >= 16 ? "concluido" : "parcial";
+      m.set(i.id, { horas, status, qHoras, sHoras });
     });
-  }, [filtro, inscricoes, mapaOficinas]);
+    return m;
+  }, [inscricoes, presencas]);
+
+  const inscricoesFiltradas = useMemo(() => {
+    const fn = filtroNome.trim().toLowerCase();
+    const fc = filtroCpf.replace(/\D/g, "");
+    return inscricoes.filter((i) => {
+      if (fn && !i.nome.toLowerCase().includes(fn)) return false;
+      if (fc && !i.cpf.includes(fc)) return false;
+      if (filtroStatus !== "todos" && statusPorInscricao.get(i.id)?.status !== filtroStatus) return false;
+      return true;
+    });
+  }, [filtroNome, filtroCpf, filtroStatus, inscricoes, statusPorInscricao]);
 
   return (
     <div className="min-h-screen bg-background">
