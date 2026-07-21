@@ -158,3 +158,23 @@ function ConsultarPage() {
     </div>
   );
 }
+
+function PresencaLinha({ p }: { p: { manha: boolean; tarde: boolean; horas: number } }) {
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <span
+        className={`rounded px-2 py-0.5 text-[11px] font-semibold ${p.manha ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"}`}
+      >
+        Manhã: {p.manha ? "presente" : "ausente"}
+      </span>
+      <span
+        className={`rounded px-2 py-0.5 text-[11px] font-semibold ${p.tarde ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"}`}
+      >
+        Tarde: {p.tarde ? "presente" : "ausente"}
+      </span>
+      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold tabular-nums text-primary">
+        {p.horas}h
+      </span>
+    </div>
+  );
+}
