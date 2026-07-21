@@ -182,6 +182,18 @@ function InscricaoPage() {
     }
   }
 
+  function voltarAoInicio() {
+    setEtapa(0);
+    setCpf("");
+    setNome("");
+    setPessoaEncontrada(null);
+    setStatusBusca("idle");
+    setOficinaQuintaId(null);
+    setOficinaSextaId(null);
+    setSucesso(null);
+    setConfirmando(false);
+  }
+
   return (
     <div className="min-h-screen bg-background">
 
