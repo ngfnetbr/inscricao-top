@@ -332,6 +332,7 @@ function Painel({ email }: { email: string }) {
       </header>
 
       <main className="mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-6">
+        <ManutencaoCard />
         <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xl font-bold text-foreground">Oficinas e ocupação</h2>
           <div className="flex gap-2">
