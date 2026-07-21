@@ -11,9 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ParticipantesRouteImport } from './routes/participantes'
 import { Route as ConsultarRouteImport } from './routes/consultar'
+import { Route as ChamadaRouteImport } from './routes/chamada'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as ChamadaOficinaIdRouteImport } from './routes/chamada.$oficinaId'
 import { Route as AdminPessoasRouteImport } from './routes/admin.pessoas'
+import { Route as AdminGestoresRouteImport } from './routes/admin.gestores'
 
 const ParticipantesRoute = ParticipantesRouteImport.update({
   id: '/participantes',
@@ -23,6 +26,11 @@ const ParticipantesRoute = ParticipantesRouteImport.update({
 const ConsultarRoute = ConsultarRouteImport.update({
   id: '/consultar',
   path: '/consultar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChamadaRoute = ChamadaRouteImport.update({
+  id: '/chamada',
+  path: '/chamada',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -35,57 +43,92 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChamadaOficinaIdRoute = ChamadaOficinaIdRouteImport.update({
+  id: '/$oficinaId',
+  path: '/$oficinaId',
+  getParentRoute: () => ChamadaRoute,
+} as any)
 const AdminPessoasRoute = AdminPessoasRouteImport.update({
   id: '/admin/pessoas',
   path: '/admin/pessoas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminGestoresRoute = AdminGestoresRouteImport.update({
+  id: '/admin/gestores',
+  path: '/admin/gestores',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/chamada': typeof ChamadaRouteWithChildren
   '/consultar': typeof ConsultarRoute
   '/participantes': typeof ParticipantesRoute
+  '/admin/gestores': typeof AdminGestoresRoute
   '/admin/pessoas': typeof AdminPessoasRoute
+  '/chamada/$oficinaId': typeof ChamadaOficinaIdRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/chamada': typeof ChamadaRouteWithChildren
   '/consultar': typeof ConsultarRoute
   '/participantes': typeof ParticipantesRoute
+  '/admin/gestores': typeof AdminGestoresRoute
   '/admin/pessoas': typeof AdminPessoasRoute
+  '/chamada/$oficinaId': typeof ChamadaOficinaIdRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/chamada': typeof ChamadaRouteWithChildren
   '/consultar': typeof ConsultarRoute
   '/participantes': typeof ParticipantesRoute
+  '/admin/gestores': typeof AdminGestoresRoute
   '/admin/pessoas': typeof AdminPessoasRoute
+  '/chamada/$oficinaId': typeof ChamadaOficinaIdRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/chamada'
     | '/consultar'
     | '/participantes'
+    | '/admin/gestores'
     | '/admin/pessoas'
+    | '/chamada/$oficinaId'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/consultar' | '/participantes' | '/admin/pessoas' | '/admin'
+  to:
+    | '/'
+    | '/chamada'
+    | '/consultar'
+    | '/participantes'
+    | '/admin/gestores'
+    | '/admin/pessoas'
+    | '/chamada/$oficinaId'
+    | '/admin'
   id:
     | '__root__'
     | '/'
+    | '/chamada'
     | '/consultar'
     | '/participantes'
+    | '/admin/gestores'
     | '/admin/pessoas'
+    | '/chamada/$oficinaId'
     | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChamadaRoute: typeof ChamadaRouteWithChildren
   ConsultarRoute: typeof ConsultarRoute
   ParticipantesRoute: typeof ParticipantesRoute
+  AdminGestoresRoute: typeof AdminGestoresRoute
   AdminPessoasRoute: typeof AdminPessoasRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -106,6 +149,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsultarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chamada': {
+      id: '/chamada'
+      path: '/chamada'
+      fullPath: '/chamada'
+      preLoaderRoute: typeof ChamadaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -120,6 +170,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chamada/$oficinaId': {
+      id: '/chamada/$oficinaId'
+      path: '/$oficinaId'
+      fullPath: '/chamada/$oficinaId'
+      preLoaderRoute: typeof ChamadaOficinaIdRouteImport
+      parentRoute: typeof ChamadaRoute
+    }
     '/admin/pessoas': {
       id: '/admin/pessoas'
       path: '/admin/pessoas'
@@ -127,26 +184,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPessoasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/gestores': {
+      id: '/admin/gestores'
+      path: '/admin/gestores'
+      fullPath: '/admin/gestores'
+      preLoaderRoute: typeof AdminGestoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface ChamadaRouteChildren {
+  ChamadaOficinaIdRoute: typeof ChamadaOficinaIdRoute
+}
+
+const ChamadaRouteChildren: ChamadaRouteChildren = {
+  ChamadaOficinaIdRoute: ChamadaOficinaIdRoute,
+}
+
+const ChamadaRouteWithChildren =
+  ChamadaRoute._addFileChildren(ChamadaRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChamadaRoute: ChamadaRouteWithChildren,
   ConsultarRoute: ConsultarRoute,
   ParticipantesRoute: ParticipantesRoute,
+  AdminGestoresRoute: AdminGestoresRoute,
   AdminPessoasRoute: AdminPessoasRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

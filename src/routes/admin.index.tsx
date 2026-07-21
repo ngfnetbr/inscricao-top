@@ -18,7 +18,9 @@ import {
   ChevronUp,
   Users,
   Settings,
+  ClipboardList,
 } from "lucide-react";
+
 
 import { supabase } from "@/integrations/supabase/client";
 import { formatarCpf } from "@/lib/format";
@@ -262,6 +264,18 @@ function Painel({ email }: { email: string }) {
           <div className="flex items-center gap-2 text-sm">
             <span className="hidden text-muted-foreground sm:inline">{email}</span>
             <Link
+              to="/admin/gestores"
+              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+            >
+              <Settings className="h-4 w-4" /> Gestores
+            </Link>
+            <Link
+              to="/chamada"
+              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+            >
+              <ClipboardList className="h-4 w-4" /> Chamada
+            </Link>
+            <Link
               to="/admin/pessoas"
               className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
             >
@@ -273,6 +287,7 @@ function Painel({ email }: { email: string }) {
             >
               <LogOut className="h-4 w-4" /> Sair
             </button>
+
           </div>
 
         </div>
