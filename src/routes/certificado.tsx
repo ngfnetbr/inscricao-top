@@ -154,20 +154,33 @@ function PainelCertificado() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bulk]);
 
+  const bulkFiltered = useMemo(() => {
+    if (!bulkData) return null;
+    const q = bulkQuery.trim().toLowerCase();
+    if (!q) return bulkData;
+    const qDigits = q.replace(/\D/g, "");
+    return bulkData.filter((c) => {
+      const nomeMatch = c.nome.toLowerCase().includes(q);
+      const cpfMatch = qDigits.length > 0 && (c.cpf || "").replace(/\D/g, "").includes(qDigits);
+      return nomeMatch || cpfMatch;
+    });
+  }, [bulkData, bulkQuery]);
+
   async function baixarTodosPdf() {
-    if (!bulkData || bulkData.length === 0) {
+    const lista = bulkFiltered ?? [];
+    if (lista.length === 0) {
       toast.error("Nenhum certificado carregado.");
       return;
     }
-    setDownloading({ atual: 0, total: bulkData.length });
+    setDownloading({ atual: 0, total: lista.length });
     const holder = document.createElement("div");
     holder.style.cssText = "position:fixed;left:-10000px;top:0;pointer-events:none;";
     document.body.appendChild(holder);
     const { renderCertificadoOffscreen } = await import("@/lib/certificado-render");
     try {
-      for (let i = 0; i < bulkData.length; i++) {
-        const c = bulkData[i];
-        setDownloading({ atual: i + 1, total: bulkData.length });
+      for (let i = 0; i < lista.length; i++) {
+        const c = lista[i];
+        setDownloading({ atual: i + 1, total: lista.length });
         const node = renderCertificadoOffscreen(holder, c, certificadoBase.url);
         // aguardar imagem carregar
         const img = node.querySelector("img");
