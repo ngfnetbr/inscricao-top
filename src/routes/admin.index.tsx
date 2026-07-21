@@ -271,50 +271,49 @@ function Painel({ email }: { email: string }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/60 bg-card/60 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">SME</p>
-            <h1 className="text-base font-semibold text-foreground">Painel administrativo</h1>
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-4">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground sm:text-xs">SME</p>
+            <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">Painel administrativo</h1>
+            <p className="truncate text-[11px] text-muted-foreground sm:hidden">{email}</p>
           </div>
-          <div className="flex items-center gap-2 text-sm">
+          <div className="-mx-3 flex items-center gap-1.5 overflow-x-auto px-3 pb-1 text-sm sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
             <span className="hidden text-muted-foreground sm:inline">{email}</span>
             <Link
               to="/admin/gestores"
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted sm:px-3 sm:py-2 sm:text-sm"
             >
-              <Settings className="h-4 w-4" /> Gestores
+              <Settings className="h-4 w-4" /> <span className="hidden xs:inline sm:inline">Gestores</span>
             </Link>
             <Link
               to="/chamada"
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted sm:px-3 sm:py-2 sm:text-sm"
             >
-              <ClipboardList className="h-4 w-4" /> Chamada
+              <ClipboardList className="h-4 w-4" /> <span>Chamada</span>
             </Link>
             <Link
               to="/admin/pessoas"
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted sm:px-3 sm:py-2 sm:text-sm"
             >
-              <Users className="h-4 w-4" /> Pessoas
+              <Users className="h-4 w-4" /> <span>Pessoas</span>
             </Link>
             <Link
               to="/certificado"
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted sm:px-3 sm:py-2 sm:text-sm"
             >
-              <ClipboardList className="h-4 w-4" /> Certificados
+              <ClipboardList className="h-4 w-4" /> <span>Certificados</span>
             </Link>
             <button
               onClick={() => supabase.auth.signOut()}
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted sm:px-3 sm:py-2 sm:text-sm"
             >
-              <LogOut className="h-4 w-4" /> Sair
+              <LogOut className="h-4 w-4" /> <span>Sair</span>
             </button>
-
           </div>
-
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6">
+      <main className="mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xl font-bold text-foreground">Oficinas e ocupação</h2>
           <div className="flex gap-2">
@@ -399,7 +398,8 @@ function Painel({ email }: { email: string }) {
         </div>
 
         <div className="card-elevated overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Desktop table */}
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[960px] text-sm">
               <thead className="bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
@@ -475,6 +475,71 @@ function Painel({ email }: { email: string }) {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile cards */}
+          <ul className="divide-y divide-border md:hidden">
+            {carregando && (
+              <li className="px-4 py-8 text-center text-sm text-muted-foreground">Carregando...</li>
+            )}
+            {!carregando && inscricoesFiltradas.length === 0 && (
+              <li className="px-4 py-8 text-center text-sm text-muted-foreground">Nenhuma inscrição encontrada.</li>
+            )}
+            {inscricoesFiltradas.map((i) => {
+              const st = statusPorInscricao.get(i.id);
+              const badge =
+                st?.status === "concluido"
+                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                  : st?.status === "parcial"
+                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                    : "bg-muted text-muted-foreground border-border";
+              const label =
+                st?.status === "concluido" ? "Concluído" : st?.status === "parcial" ? "Parcial" : "Sem chamada";
+              return (
+                <li key={i.id} className="p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">{i.nome}</p>
+                      <p className="text-xs text-muted-foreground">{formatarCpf(i.cpf)}</p>
+                    </div>
+                    <div className="flex shrink-0 gap-1">
+                      <button
+                        onClick={() => setEditando(i)}
+                        title="Editar / Transferir"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card hover:bg-muted"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => excluirInscricao(i)}
+                        title="Excluir"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-destructive/40 bg-card text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <dl className="mt-2 space-y-1 text-xs">
+                    <div className="flex gap-2">
+                      <dt className="w-14 shrink-0 text-muted-foreground">Quinta</dt>
+                      <dd className="min-w-0 flex-1 text-foreground">{mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—"}</dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="w-14 shrink-0 text-muted-foreground">Sexta</dt>
+                      <dd className="min-w-0 flex-1 text-foreground">{mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—"}</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${badge}`}>
+                      {label} · {st?.horas ?? 0}h
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {new Date(i.criado_em).toLocaleString("pt-BR")}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </main>
 
