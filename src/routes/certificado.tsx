@@ -153,6 +153,50 @@ function PainelCertificado() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bulk]);
 
+  async function baixarTodosPdf() {
+    if (!bulkData || bulkData.length === 0) {
+      toast.error("Nenhum certificado carregado.");
+      return;
+    }
+    if (!captureRef.current) return;
+    setDownloading({ atual: 0, total: bulkData.length });
+    const holder = captureRef.current;
+    const { renderCertificadoOffscreen } = await import("@/lib/certificado-render");
+    try {
+      for (let i = 0; i < bulkData.length; i++) {
+        const c = bulkData[i];
+        setDownloading({ atual: i + 1, total: bulkData.length });
+        const node = renderCertificadoOffscreen(holder, c, certificadoBase.url);
+        // aguardar imagem carregar
+        const img = node.querySelector("img");
+        if (img && !img.complete) {
+          await new Promise<void>((res) => {
+            img.addEventListener("load", () => res(), { once: true });
+            img.addEventListener("error", () => res(), { once: true });
+          });
+        }
+        await new Promise((r) => setTimeout(r, 60));
+        const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
+        const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, pageH);
+        const cpfLimpo = (c.cpf || "").replace(/\D/g, "");
+        const nomeLimpo = c.nome.replace(/[\\/:*?"<>|]/g, "").trim();
+        pdf.save(`${nomeLimpo} ${cpfLimpo}.pdf`);
+        node.remove();
+        await new Promise((r) => setTimeout(r, 30));
+      }
+      toast.success(`${bulkData.length} certificado(s) baixado(s).`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Falha ao gerar PDFs em lote.");
+    } finally {
+      setDownloading(null);
+    }
+  }
+
+
   const oficinasComHoras = useMemo(() => {
     if (resultado?.status !== "encontrado") return [];
     return [resultado.oficina_quinta, resultado.oficina_sexta].filter((o) => o.horas > 0);
