@@ -59,7 +59,7 @@ function CertificadoPage() {
 }
 
 function PainelCertificado() {
-  const { cpf: cpfSearch, bulk } = Route.useSearch();
+  const { cpf: cpfSearch } = Route.useSearch();
   const [cpf, setCpf] = useState(cpfSearch ?? "");
   const [buscando, setBuscando] = useState(false);
   const [resultado, setResultado] = useState<ConsultaResultado | null>(null);
@@ -69,7 +69,9 @@ function PainelCertificado() {
   const [bulkQuery, setBulkQuery] = useState("");
   const [downloading, setDownloading] = useState<{ atual: number; total: number } | null>(null);
   const [singleDownloading, setSingleDownloading] = useState<string | null>(null);
+  const [preview, setPreview] = useState<CertData | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
+
 
   async function buscar(valor: string) {
     if (!cpfValido(valor)) {
