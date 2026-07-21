@@ -116,10 +116,10 @@ function ChamadaOficina() {
 
       <main className="mx-auto max-w-4xl px-4 py-6">
         <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <StatBox label="Manhã" valor={totais.m} />
-          <StatBox label="Tarde" valor={totais.t} />
-          <StatBox label="8h (ambos)" valor={totais.ambos} tone="success" />
+          <StatBox label="Presenças" valor={totais.presentes} tone="success" />
           <StatBox label="Faltas" valor={totais.faltas} tone="danger" />
+          <StatBox label="Pendentes" valor={totais.pendentes} />
+          <StatBox label="8h (ambos)" valor={totais.concluidos} tone="success" />
         </div>
 
         <div className="mb-3 flex items-center gap-2">
@@ -143,23 +143,23 @@ function ChamadaOficina() {
         ) : (
           <ul className="card-elevated divide-y divide-border overflow-hidden">
             {itensFiltrados.map((i) => (
-              <li key={i.inscricao_id} className="flex flex-wrap items-center gap-3 p-3 sm:flex-nowrap">
+              <li key={i.inscricao_id} className="flex flex-col gap-3 p-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">{i.nome}</p>
                   <p className="text-xs text-muted-foreground">{formatarCpf(i.cpf)}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckPresenca
+                <div className="flex flex-wrap items-center gap-3">
+                  <TurnoControle
                     label="Manhã"
-                    checked={i.manha}
+                    valor={i.manha}
                     disabled={salvando === i.inscricao_id}
-                    onChange={(v) => alternar(i, "manha", v)}
+                    onChange={(v) => alterar(i, "manha", v)}
                   />
-                  <CheckPresenca
+                  <TurnoControle
                     label="Tarde"
-                    checked={i.tarde}
+                    valor={i.tarde}
                     disabled={salvando === i.inscricao_id}
-                    onChange={(v) => alternar(i, "tarde", v)}
+                    onChange={(v) => alterar(i, "tarde", v)}
                   />
                   <span
                     className={[
@@ -182,7 +182,7 @@ function ChamadaOficina() {
 
         <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
           <Save className="h-3.5 w-3.5" />
-          As presenças são salvas automaticamente ao marcar.
+          As presenças e faltas são salvas automaticamente ao marcar. Clique novamente para limpar.
         </p>
       </main>
     </div>
@@ -200,35 +200,54 @@ function StatBox({ label, valor, tone }: { label: string; valor: number; tone?: 
   );
 }
 
-function CheckPresenca({
+function TurnoControle({
   label,
-  checked,
+  valor,
   disabled,
   onChange,
 }: {
   label: string;
-  checked: boolean;
+  valor: boolean | null;
   disabled?: boolean;
-  onChange: (v: boolean) => void;
+  onChange: (v: boolean | null) => void;
 }) {
   return (
-    <label
-      className={[
-        "flex cursor-pointer select-none items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition",
-        checked
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-card text-foreground hover:bg-muted",
-        disabled ? "opacity-60" : "",
-      ].join(" ")}
-    >
-      <input
-        type="checkbox"
-        className="sr-only"
-        checked={checked}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      {label}
-    </label>
+    <div className="flex items-center gap-1.5">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <div className="inline-flex overflow-hidden rounded-lg border border-border">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(valor === true ? null : true)}
+          aria-pressed={valor === true}
+          title={valor === true ? "Desmarcar presença" : "Marcar presente"}
+          className={[
+            "inline-flex h-8 w-9 items-center justify-center text-xs font-semibold transition",
+            valor === true
+              ? "bg-success text-success-foreground"
+              : "bg-card text-muted-foreground hover:bg-muted",
+            disabled ? "opacity-60" : "",
+          ].join(" ")}
+        >
+          <Check className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(valor === false ? null : false)}
+          aria-pressed={valor === false}
+          title={valor === false ? "Desmarcar falta" : "Marcar falta"}
+          className={[
+            "inline-flex h-8 w-9 items-center justify-center border-l border-border text-xs font-semibold transition",
+            valor === false
+              ? "bg-destructive text-destructive-foreground"
+              : "bg-card text-muted-foreground hover:bg-muted",
+            disabled ? "opacity-60" : "",
+          ].join(" ")}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
   );
 }
