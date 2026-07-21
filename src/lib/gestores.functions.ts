@@ -66,7 +66,7 @@ export const criarGestor = createServerFn({ method: "POST" })
 
     const roleRes = await supabaseAdmin
       .from("user_roles")
-      .upsert({ user_id: userId, role: "gestor" }, { onConflict: "user_id,role" });
+      .upsert({ user_id: userId, role: "gestor", nome: data.nome }, { onConflict: "user_id,role" });
     if (roleRes.error) throw new Error(`Falha ao atribuir papel: ${roleRes.error.message}`);
 
     if (data.oficinaIds.length > 0) {
