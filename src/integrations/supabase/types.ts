@@ -272,6 +272,34 @@ export type Database = {
           titulo: string | null
           vagas_disponiveis: number | null
         }
+        Insert: {
+          ativa?: boolean | null
+          data?: string | null
+          dia?: string | null
+          id?: string | null
+          inscritos?: never
+          limite_vagas?: number | null
+          lotada?: never
+          ministrante?: string | null
+          ordem?: number | null
+          publico_alvo?: string | null
+          titulo?: string | null
+          vagas_disponiveis?: never
+        }
+        Update: {
+          ativa?: boolean | null
+          data?: string | null
+          dia?: string | null
+          id?: string | null
+          inscritos?: never
+          limite_vagas?: number | null
+          lotada?: never
+          ministrante?: string | null
+          ordem?: number | null
+          publico_alvo?: string | null
+          titulo?: string | null
+          vagas_disponiveis?: never
+        }
         Relationships: []
       }
     }
@@ -311,6 +339,10 @@ export type Database = {
         Returns: Json
       }
       consultar_inscricao_por_cpf: { Args: { _cpf: string }; Returns: Json }
+      contar_inscritos_oficina: {
+        Args: { _dia: string; _oficina_id: string }
+        Returns: number
+      }
       gerencia_oficina: {
         Args: { _oficina_id: string; _user_id: string }
         Returns: boolean
