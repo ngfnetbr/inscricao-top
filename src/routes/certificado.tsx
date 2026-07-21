@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Loader2, Printer, Search, Files } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Loader2, Printer, Search, Files, Download } from "lucide-react";
 import { toast } from "sonner";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import { consultarInscricaoPorCpf, type ConsultaResultado } from "@/lib/oficinas";
 import { cpfValido, formatarCpf, normalizarCpf } from "@/lib/format";
