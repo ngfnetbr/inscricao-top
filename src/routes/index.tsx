@@ -56,29 +56,19 @@ function InscricaoPage() {
     queryKey: ["oficinas"],
     queryFn: () => listarOficinas(),
     refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 15000,
+    staleTime: 0,
   });
 
-  // Realtime
-  useEffect(() => {
-    const channel = supabase
-      .channel("inscricoes-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "inscricoes" },
-        () => {
-          refetch();
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [refetch]);
-
-  // Sempre voltar ao topo ao mudar de etapa
+  // Sempre voltar ao topo ao mudar de etapa e revalidar vagas
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [etapa]);
+    if (etapa === 2 || etapa === 3 || etapa === 4) {
+      refetch();
+    }
+  }, [etapa, refetch]);
+
 
   const oficinasQuinta = useMemo(() => oficinas.filter((o) => o.dia === "quinta"), [oficinas]);
   const oficinasSexta = useMemo(() => oficinas.filter((o) => o.dia === "sexta"), [oficinas]);
