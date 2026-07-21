@@ -243,12 +243,12 @@ function InscricaoPage() {
 
         {etapa === 5 && sucesso && <EtapaSucesso dados={sucesso} />}
 
-        <footer className="mt-10 flex flex-col items-center justify-center gap-3 border-t border-border/60 pt-8 text-center sm:mt-14 sm:pt-10">
+        <footer className="mt-6 flex flex-col items-center justify-center gap-2 border-t border-border/60 pt-5 text-center sm:mt-8 sm:gap-3 sm:pt-6">
           <p className="text-xs font-medium text-muted-foreground">Desenvolvido por:</p>
           <img
             src={logoNgf.url}
             alt="NGF - Soluções em Tecnologia"
-            className="h-10 w-auto object-contain opacity-90 sm:h-12"
+            className="h-9 w-auto object-contain opacity-90 sm:h-10"
           />
         </footer>
       </main>
@@ -265,7 +265,7 @@ function EtapaLanding({ onInscrever }: { onInscrever: () => void }) {
       <img
         src={logoConversas.url}
         alt="Conversas Pedagógicas — Rede Municipal de Educação de Nova Londrina"
-        className="mx-auto mb-4 w-full max-w-xs sm:mb-6 sm:max-w-md"
+        className="mx-auto mb-3 w-full max-w-[14rem] sm:mb-4 sm:max-w-[18rem]"
       />
       <p className="mx-auto mt-1 max-w-md text-xs text-muted-foreground sm:mt-2 sm:text-sm">
         Escolha uma oficina para cada dia (23 e 24 de julho) e garanta sua vaga.
