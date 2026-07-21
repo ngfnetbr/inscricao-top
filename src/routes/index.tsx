@@ -365,8 +365,15 @@ function Etapa1(props: {
         <div className="flex flex-col gap-2 sm:flex-row">
           <input
             id="cpf"
+            name={`cpf-${Math.random().toString(36).slice(2)}`}
             inputMode="numeric"
             autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            data-lpignore="true"
+            data-form-type="other"
+            data-1p-ignore="true"
             placeholder="000.000.000-00"
             value={formatarCpf(cpf)}
             onChange={(e) => {
