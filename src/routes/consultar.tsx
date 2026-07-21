@@ -66,12 +66,12 @@ function ConsultarPage() {
               value={formatarCpf(cpf)}
               onChange={(e) => { setCpf(normalizarCpf(e.target.value)); setResultado(null); }}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); buscar(); } }}
-              className="h-14 flex-1 rounded-xl border border-input bg-background px-4 text-lg tracking-wide outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/40"
+              className="h-16 w-full flex-1 rounded-xl border border-input bg-background px-5 text-2xl font-medium tracking-wider outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/40"
             />
             <button
               onClick={buscar}
               disabled={buscando || normalizarCpf(cpf).length !== 11}
-              className="brand-gradient inline-flex h-14 items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold text-primary-foreground shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+              className="brand-gradient inline-flex h-16 shrink-0 items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold text-primary-foreground shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {buscando ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
               Consultar
