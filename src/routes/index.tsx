@@ -96,6 +96,13 @@ function InscricaoPage() {
     setBuscando(true);
     setStatusBusca("buscando");
     try {
+      const jaInscrito = await consultarInscricaoPorCpf(cpf);
+      if (jaInscrito.status === "encontrado") {
+        toast.error("Este CPF já possui uma inscrição registrada. Use 'Consultar minha inscrição' para visualizá-la.");
+        setStatusBusca("idle");
+        setBuscando(false);
+        return;
+      }
       const p = await buscarPessoaPorCpf(cpf);
       if (p) {
         setPessoaEncontrada(p);
