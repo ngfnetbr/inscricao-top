@@ -344,7 +344,7 @@ function Painel({ email }: { email: string }) {
             <button
               onClick={async () => {
                 const { gerarPdfOficinas } = await import("@/lib/oficinas-pdf");
-                gerarPdfOficinas(oficinas, participantesPorOficina);
+                await gerarPdfOficinas(oficinas, participantesPorOficina);
               }}
               className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
             >
