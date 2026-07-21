@@ -342,6 +342,15 @@ function Painel({ email }: { email: string }) {
               <RefreshCw className="h-4 w-4" /> Atualizar
             </button>
             <button
+              onClick={async () => {
+                const { gerarPdfOficinas } = await import("@/lib/oficinas-pdf");
+                gerarPdfOficinas(oficinas, participantesPorOficina);
+              }}
+              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+            >
+              <Download className="h-4 w-4" /> PDF oficinas
+            </button>
+            <button
               onClick={exportarCsv}
               className="brand-gradient inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-primary-foreground"
             >
