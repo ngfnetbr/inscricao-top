@@ -455,6 +455,8 @@ function Etapa1(props: {
 
 function EtapaOficinas(props: {
   titulo: string;
+  badge?: string;
+  badgeTone?: "quinta" | "sexta";
   oficinas: OficinaComVagas[];
   selecionadaId: string | null;
   outraSelecionadaId: string | null;
@@ -463,14 +465,25 @@ function EtapaOficinas(props: {
   voltar: () => void;
   avancar: () => void;
 }) {
-  const { titulo, oficinas, selecionadaId, outraSelecionadaId, outraOficina, onSelecionar, voltar, avancar } = props;
+  const { titulo, badge, badgeTone, oficinas, selecionadaId, outraSelecionadaId, outraOficina, onSelecionar, voltar, avancar } = props;
   const outraSelecionada =
     oficinas.find((o) => o.id === outraSelecionadaId) ?? outraOficina ?? null;
 
+  const badgeClasses =
+    badgeTone === "sexta"
+      ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300"
+      : "bg-sky-100 text-sky-900 ring-1 ring-sky-300";
+
   return (
     <section>
-      <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">{titulo}</h2>
+      {badge && (
+        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide shadow-sm ${badgeClasses}`}>
+          {badge}
+        </span>
+      )}
+      <h2 className="mt-2 text-xl font-bold tracking-tight text-foreground sm:text-2xl">{titulo}</h2>
       <p className="mt-1 text-sm text-muted-foreground">Toque no cartão para selecionar uma oficina.</p>
+
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {oficinas.length === 0 && (
