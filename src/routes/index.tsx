@@ -365,8 +365,15 @@ function Etapa1(props: {
         <div className="flex flex-col gap-2 sm:flex-row">
           <input
             id="cpf"
+            name={`cpf-${Math.random().toString(36).slice(2)}`}
             inputMode="numeric"
             autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            data-lpignore="true"
+            data-form-type="other"
+            data-1p-ignore="true"
             placeholder="000.000.000-00"
             value={formatarCpf(cpf)}
             onChange={(e) => {
@@ -464,9 +471,17 @@ function Etapa1(props: {
           </label>
           <input
             id="nome"
+            name={`nome-${Math.random().toString(36).slice(2)}`}
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             placeholder="Seu nome completo"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="words"
+            spellCheck={false}
+            data-lpignore="true"
+            data-form-type="other"
+            data-1p-ignore="true"
             className="h-12 w-full rounded-xl border border-input bg-background px-4 outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/40"
           />
           <div className="mt-4 flex justify-end">

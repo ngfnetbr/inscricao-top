@@ -61,7 +61,15 @@ function ConsultarPage() {
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row">
             <input
+              name={`cpf-${Math.random().toString(36).slice(2)}`}
               inputMode="numeric"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              data-lpignore="true"
+              data-form-type="other"
+              data-1p-ignore="true"
               placeholder="000.000.000-00"
               value={formatarCpf(cpf)}
               onChange={(e) => { setCpf(normalizarCpf(e.target.value)); setResultado(null); }}
