@@ -9,6 +9,7 @@ import {
   listarOficinas,
   buscarPessoaPorCpf,
   confirmarInscricao,
+  consultarInscricaoPorCpf,
   type OficinaComVagas,
   type ConfirmarResultado,
 } from "@/lib/oficinas";
@@ -74,6 +75,11 @@ function InscricaoPage() {
     };
   }, [refetch]);
 
+  // Sempre voltar ao topo ao mudar de etapa
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [etapa]);
+
   const oficinasQuinta = useMemo(() => oficinas.filter((o) => o.dia === "quinta"), [oficinas]);
   const oficinasSexta = useMemo(() => oficinas.filter((o) => o.dia === "sexta"), [oficinas]);
 
@@ -90,6 +96,13 @@ function InscricaoPage() {
     setBuscando(true);
     setStatusBusca("buscando");
     try {
+      const jaInscrito = await consultarInscricaoPorCpf(cpf);
+      if (jaInscrito.status === "encontrado") {
+        toast.error("Este CPF já possui uma inscrição registrada. Use 'Consultar minha inscrição' para visualizá-la.");
+        setStatusBusca("idle");
+        setBuscando(false);
+        return;
+      }
       const p = await buscarPessoaPorCpf(cpf);
       if (p) {
         setPessoaEncontrada(p);
