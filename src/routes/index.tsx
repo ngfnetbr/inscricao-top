@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, GraduationCap, Sparkles, Search, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, GraduationCap, Sparkles, Search, Users, Home } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
