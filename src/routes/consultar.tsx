@@ -131,13 +131,6 @@ function ConsultarPage() {
             </div>
 
             <div className="mt-6 flex flex-wrap justify-end gap-2 print:hidden">
-              <Link
-                to="/certificado"
-                search={{ cpf: normalizarCpf(cpf) }}
-                className="inline-flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3 text-sm font-semibold text-primary hover:bg-primary/15"
-              >
-                <GraduationCap className="h-4 w-4" /> Gerar certificado
-              </Link>
               <button
                 onClick={() => window.print()}
                 className="brand-gradient inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-95"
@@ -145,6 +138,7 @@ function ConsultarPage() {
                 <Printer className="h-4 w-4" /> Salvar comprovante
               </button>
             </div>
+
           </section>
         )}
 
