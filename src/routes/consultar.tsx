@@ -16,6 +16,7 @@ function ConsultarPage() {
   const [buscando, setBuscando] = useState(false);
   const [resultado, setResultado] = useState<ConsultaResultado | null>(null);
 
+  if (manutencaoLoading) return <div className="min-h-screen bg-background" />;
   if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
 
 
