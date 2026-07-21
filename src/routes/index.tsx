@@ -36,7 +36,7 @@ type Sucesso = {
 };
 
 function InscricaoPage() {
-  const { data: manutencao } = useManutencao();
+  const { data: manutencao, isLoading: manutencaoLoading } = useManutencao();
   const [etapa, setEtapa] = useState<Etapa>(0);
 
   // Etapa 1
@@ -186,6 +186,7 @@ function InscricaoPage() {
     setConfirmando(false);
   }
 
+  if (manutencaoLoading) return <div className="min-h-screen bg-background" />;
   if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
 
   return (
