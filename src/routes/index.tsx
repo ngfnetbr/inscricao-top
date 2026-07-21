@@ -9,6 +9,7 @@ import {
   listarOficinas,
   buscarPessoaPorCpf,
   confirmarInscricao,
+  consultarInscricaoPorCpf,
   type OficinaComVagas,
   type ConfirmarResultado,
 } from "@/lib/oficinas";
