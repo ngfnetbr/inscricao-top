@@ -613,7 +613,7 @@ function OcupacaoLista({
   onAlternar: (o: OficinaComVagas) => void;
 }) {
   return (
-    <div className="card-elevated p-5">
+    <div className="card-elevated w-full min-w-0 overflow-hidden p-3 sm:p-5">
       <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{titulo}</h3>
       {oficinas.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma oficina.</p>}
       <ul className="space-y-4">
@@ -622,13 +622,13 @@ function OcupacaoLista({
           const aberta = oficinaAberta === o.id;
           const participantes = participantesPorOficina.get(o.id) ?? [];
           return (
-            <li key={o.id} className={o.ativa ? "" : "opacity-60"}>
+            <li key={o.id} className={`min-w-0 ${o.ativa ? "" : "opacity-60"}`}>
               <div className="mb-1 flex items-start justify-between gap-2 text-sm">
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-foreground">{o.titulo}</p>
-                  <p className="truncate text-xs text-muted-foreground">{o.ministrante}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="break-words font-medium text-foreground">{o.titulo}</p>
+                  <p className="break-words text-xs text-muted-foreground">{o.ministrante}</p>
                   {o.publico_alvo && (
-                    <p className="mt-0.5 truncate text-[11px] text-primary/80">{o.publico_alvo}</p>
+                    <p className="mt-0.5 break-words text-[11px] text-primary/80">{o.publico_alvo}</p>
                   )}
                 </div>
                 <span className={o.lotada ? "shrink-0 font-semibold text-destructive" : "shrink-0 text-muted-foreground"}>
@@ -673,7 +673,7 @@ function OcupacaoLista({
                   onClick={() => setOficinaAberta(aberta ? null : o.id)}
                   className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-card px-2 text-xs hover:bg-muted"
                 >
-                  <Users className="h-3 w-3" /> Participantes ({participantes.length})
+                  <Users className="h-3 w-3" /> <span className="hidden xs:inline">Participantes</span> ({participantes.length})
                   {aberta ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                 </button>
               </div>
@@ -684,10 +684,10 @@ function OcupacaoLista({
                   ) : (
                     <ol className="space-y-1 text-sm">
                       {participantes.map((p, idx) => (
-                        <li key={p.id} className="flex items-baseline gap-2">
+                        <li key={p.id} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                           <span className="w-5 shrink-0 text-right text-xs text-muted-foreground">{idx + 1}.</span>
-                          <span className="flex-1 text-foreground">{p.nome}</span>
-                          <span className="text-xs text-muted-foreground">{formatarCpf(p.cpf)}</span>
+                          <span className="min-w-0 flex-1 break-words text-foreground">{p.nome}</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">{formatarCpf(p.cpf)}</span>
                         </li>
                       ))}
                     </ol>
