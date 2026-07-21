@@ -158,9 +158,10 @@ function PainelCertificado() {
       toast.error("Nenhum certificado carregado.");
       return;
     }
-    if (!captureRef.current) return;
     setDownloading({ atual: 0, total: bulkData.length });
-    const holder = captureRef.current;
+    const holder = document.createElement("div");
+    holder.style.cssText = "position:fixed;left:-10000px;top:0;pointer-events:none;";
+    document.body.appendChild(holder);
     const { renderCertificadoOffscreen } = await import("@/lib/certificado-render");
     try {
       for (let i = 0; i < bulkData.length; i++) {
