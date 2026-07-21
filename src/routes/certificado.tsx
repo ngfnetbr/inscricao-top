@@ -419,28 +419,33 @@ function Certificado({
         }
         .cert-overlay {
           position: absolute;
-          top: 30%;
-          left: 4%;
-          width: 48%;
+          top: 32%;
+          left: 6%;
+          width: 40%;
           text-align: center;
           color: #111;
           font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          hyphens: auto;
         }
-        .cert-intro { font-size: 15px; margin: 0; color: #222; }
+        .cert-intro { font-size: 17px; margin: 0; color: #222; }
         .cert-nome {
-          font-size: 22px; font-weight: 800;
-          margin: 4px 0 2px 0; line-height: 1.15;
+          font-size: 26px; font-weight: 800;
+          margin: 6px 0 4px 0; line-height: 1.15;
           overflow-wrap: break-word;
         }
-        .cert-cpf { font-size: 12px; margin: 0 0 14px 0; color: #222; }
-        .cert-body { font-size: 13px; margin: 0 0 6px 0; }
+        .cert-cpf { font-size: 14px; margin: 0 0 18px 0; color: #222; }
+        .cert-body { font-size: 15px; margin: 0 0 8px 0; }
         .cert-lista {
           list-style: none; padding: 0;
-          margin: 0 auto 10px auto; font-size: 13px; line-height: 1.4;
+          margin: 0 auto 12px auto; font-size: 15px; line-height: 1.45;
           max-width: 100%;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
         }
-        .cert-lista li { margin-bottom: 3px; overflow-wrap: break-word; }
-        .cert-total { font-size: 12px; margin: 0; line-height: 1.45; }
+        .cert-lista li { margin-bottom: 4px; overflow-wrap: break-word; word-wrap: break-word; }
+        .cert-total { font-size: 14px; margin: 0; line-height: 1.5; overflow-wrap: break-word; }
 
         @media print {
           .certificado-page {
