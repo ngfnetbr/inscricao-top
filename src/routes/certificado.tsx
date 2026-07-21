@@ -457,13 +457,12 @@ function PainelCertificado() {
               </p>
             )}
 
-            {/* Mobile: lista simplificada com download individual */}
             {bulkFiltered.length > 0 && (
-              <div className="mt-4 space-y-3 md:hidden print:hidden">
+              <div className="mt-4 space-y-3 print:hidden">
                 {bulkFiltered.map((c) => (
                   <div
                     key={c.cpf}
-                    className="card-elevated flex items-center justify-between gap-3 p-4"
+                    className="card-elevated flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold">{c.nome}</p>
@@ -473,7 +472,7 @@ function PainelCertificado() {
                     <button
                       onClick={() => baixarUm(c)}
                       disabled={singleDownloading === c.cpf || !!downloading}
-                      className="brand-gradient inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                      className="brand-gradient inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
                     >
                       {singleDownloading === c.cpf ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -487,9 +486,9 @@ function PainelCertificado() {
               </div>
             )}
 
-            {/* Desktop: visualização prévia para impressão / download em massa */}
+            {/* Área de impressão oculta na tela */}
             {bulkFiltered.length > 0 && (
-              <div className="cert-print-area mt-4 hidden space-y-6 md:block print:mt-0 print:block print:space-y-0">
+              <div className="cert-print-area mt-4 hidden print:mt-0 print:block print:space-y-0">
                 {bulkFiltered.map((c, idx) => (
                   <div key={idx} className="cert-page-wrap flex justify-center">
                     <Certificado nome={c.nome} cpf={c.cpf} oficinas={c.oficinas} totalHoras={c.totalHoras} />
