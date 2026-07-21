@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ParticipantesRouteImport } from './routes/participantes'
 import { Route as ConsultarRouteImport } from './routes/consultar'
 import { Route as ChamadaRouteImport } from './routes/chamada'
+import { Route as CertificadoRouteImport } from './routes/certificado'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ChamadaOficinaIdRouteImport } from './routes/chamada.$oficinaId'
@@ -31,6 +32,11 @@ const ConsultarRoute = ConsultarRouteImport.update({
 const ChamadaRoute = ChamadaRouteImport.update({
   id: '/chamada',
   path: '/chamada',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CertificadoRoute = CertificadoRouteImport.update({
+  id: '/certificado',
+  path: '/certificado',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -61,6 +67,7 @@ const AdminGestoresRoute = AdminGestoresRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/certificado': typeof CertificadoRoute
   '/chamada': typeof ChamadaRouteWithChildren
   '/consultar': typeof ConsultarRoute
   '/participantes': typeof ParticipantesRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/certificado': typeof CertificadoRoute
   '/chamada': typeof ChamadaRouteWithChildren
   '/consultar': typeof ConsultarRoute
   '/participantes': typeof ParticipantesRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/certificado': typeof CertificadoRoute
   '/chamada': typeof ChamadaRouteWithChildren
   '/consultar': typeof ConsultarRoute
   '/participantes': typeof ParticipantesRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/certificado'
     | '/chamada'
     | '/consultar'
     | '/participantes'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/certificado'
     | '/chamada'
     | '/consultar'
     | '/participantes'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/certificado'
     | '/chamada'
     | '/consultar'
     | '/participantes'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CertificadoRoute: typeof CertificadoRoute
   ChamadaRoute: typeof ChamadaRouteWithChildren
   ConsultarRoute: typeof ConsultarRoute
   ParticipantesRoute: typeof ParticipantesRoute
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/chamada'
       fullPath: '/chamada'
       preLoaderRoute: typeof ChamadaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/certificado': {
+      id: '/certificado'
+      path: '/certificado'
+      fullPath: '/certificado'
+      preLoaderRoute: typeof CertificadoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -207,6 +227,7 @@ const ChamadaRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CertificadoRoute: CertificadoRoute,
   ChamadaRoute: ChamadaRouteWithChildren,
   ConsultarRoute: ConsultarRoute,
   ParticipantesRoute: ParticipantesRoute,
