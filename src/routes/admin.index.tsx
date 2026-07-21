@@ -398,7 +398,8 @@ function Painel({ email }: { email: string }) {
         </div>
 
         <div className="card-elevated overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Desktop table */}
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[960px] text-sm">
               <thead className="bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
@@ -474,6 +475,71 @@ function Painel({ email }: { email: string }) {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile cards */}
+          <ul className="divide-y divide-border md:hidden">
+            {carregando && (
+              <li className="px-4 py-8 text-center text-sm text-muted-foreground">Carregando...</li>
+            )}
+            {!carregando && inscricoesFiltradas.length === 0 && (
+              <li className="px-4 py-8 text-center text-sm text-muted-foreground">Nenhuma inscrição encontrada.</li>
+            )}
+            {inscricoesFiltradas.map((i) => {
+              const st = statusPorInscricao.get(i.id);
+              const badge =
+                st?.status === "concluido"
+                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                  : st?.status === "parcial"
+                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                    : "bg-muted text-muted-foreground border-border";
+              const label =
+                st?.status === "concluido" ? "Concluído" : st?.status === "parcial" ? "Parcial" : "Sem chamada";
+              return (
+                <li key={i.id} className="p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">{i.nome}</p>
+                      <p className="text-xs text-muted-foreground">{formatarCpf(i.cpf)}</p>
+                    </div>
+                    <div className="flex shrink-0 gap-1">
+                      <button
+                        onClick={() => setEditando(i)}
+                        title="Editar / Transferir"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card hover:bg-muted"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => excluirInscricao(i)}
+                        title="Excluir"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-destructive/40 bg-card text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <dl className="mt-2 space-y-1 text-xs">
+                    <div className="flex gap-2">
+                      <dt className="w-14 shrink-0 text-muted-foreground">Quinta</dt>
+                      <dd className="min-w-0 flex-1 text-foreground">{mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—"}</dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="w-14 shrink-0 text-muted-foreground">Sexta</dt>
+                      <dd className="min-w-0 flex-1 text-foreground">{mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—"}</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${badge}`}>
+                      {label} · {st?.horas ?? 0}h
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {new Date(i.criado_em).toLocaleString("pt-BR")}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </main>
 
