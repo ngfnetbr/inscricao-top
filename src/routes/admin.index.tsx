@@ -351,28 +351,32 @@ function Painel({ email }: { email: string }) {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <OcupacaoLista
-            titulo="Quinta-feira"
-            oficinas={quinta}
-            participantesPorOficina={participantesPorOficina}
-            oficinaAberta={oficinaAberta}
-            setOficinaAberta={setOficinaAberta}
-            onMais={(o) => ajustarVagas(o, 1)}
-            onMenos={(o) => ajustarVagas(o, -1)}
-            onEditar={setEditandoOficina}
-            onAlternar={alternarAtiva}
-          />
-          <OcupacaoLista
-            titulo="Sexta-feira"
-            oficinas={sexta}
-            participantesPorOficina={participantesPorOficina}
-            oficinaAberta={oficinaAberta}
-            setOficinaAberta={setOficinaAberta}
-            onMais={(o) => ajustarVagas(o, 1)}
-            onMenos={(o) => ajustarVagas(o, -1)}
-            onEditar={setEditandoOficina}
-            onAlternar={alternarAtiva}
-          />
+          <div className="min-w-0">
+            <OcupacaoLista
+              titulo="Quinta-feira"
+              oficinas={quinta}
+              participantesPorOficina={participantesPorOficina}
+              oficinaAberta={oficinaAberta}
+              setOficinaAberta={setOficinaAberta}
+              onMais={(o) => ajustarVagas(o, 1)}
+              onMenos={(o) => ajustarVagas(o, -1)}
+              onEditar={setEditandoOficina}
+              onAlternar={alternarAtiva}
+            />
+          </div>
+          <div className="min-w-0">
+            <OcupacaoLista
+              titulo="Sexta-feira"
+              oficinas={sexta}
+              participantesPorOficina={participantesPorOficina}
+              oficinaAberta={oficinaAberta}
+              setOficinaAberta={setOficinaAberta}
+              onMais={(o) => ajustarVagas(o, 1)}
+              onMenos={(o) => ajustarVagas(o, -1)}
+              onEditar={setEditandoOficina}
+              onAlternar={alternarAtiva}
+            />
+          </div>
         </div>
 
         <div className="mt-8 mb-3">
