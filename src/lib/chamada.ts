@@ -8,6 +8,9 @@ export type MinhaOficina = {
   data: string;
   publico_alvo: string | null;
   limite_vagas: number;
+  total_inscritos?: number;
+  chamadas_feitas?: number;
+  pendentes?: number;
 };
 
 export async function listarMinhasOficinas(): Promise<MinhaOficina[]> {
