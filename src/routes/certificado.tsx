@@ -422,7 +422,7 @@ function Certificado({
         .cert-overlay {
           position: absolute;
           top: 28%;
-          left: 3%;
+          left: 5%;
           width: 40%;
           text-align: center;
           color: #111;

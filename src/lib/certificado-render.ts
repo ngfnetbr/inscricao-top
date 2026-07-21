@@ -48,7 +48,7 @@ export function renderCertificadoOffscreen(
     </style>
     <div class="cert-safe" style="position:absolute;inset:0;">
       <img src="${imgUrl}" alt="" crossorigin="anonymous" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;" />
-      <div style="position:absolute;top:28%;left:3%;width:40%;text-align:center;word-wrap:break-word;overflow-wrap:break-word;">
+      <div style="position:absolute;top:28%;left:5%;width:40%;text-align:center;word-wrap:break-word;overflow-wrap:break-word;">
         <p style="font-size:19px;margin:0;color:#222222;">Certificamos que</p>
         <p style="font-size:30px;font-weight:800;margin:6px 0 4px 0;line-height:1.15;overflow-wrap:break-word;color:#111111;">${escapeHtml(nomeExibicao)},</p>
         <p style="font-size:16px;margin:0 0 20px 0;color:#222222;">inscrito(a) no CPF ${escapeHtml(cpfFmt)}</p>
