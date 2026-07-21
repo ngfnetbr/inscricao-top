@@ -231,6 +231,7 @@ function InscricaoPage() {
             buscarCpf={buscarCpf}
             buscando={buscando}
             avancar={irParaEtapa2}
+            onVoltarInicio={voltarAoInicio}
           />
         )}
 
