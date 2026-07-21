@@ -59,14 +59,26 @@ export async function confirmarInscricao(params: {
   return data as unknown as ConfirmarResultado;
 }
 
+type OficinaConsulta = {
+  id: string;
+  titulo: string;
+  ministrante: string;
+  publico_alvo: string | null;
+  data: string;
+  manha: boolean;
+  tarde: boolean;
+  horas: number;
+};
+
 export type ConsultaResultado =
   | {
       status: "encontrado";
       protocolo: string;
       nome: string;
       criado_em: string;
-      oficina_quinta: { id: string; titulo: string; ministrante: string; publico_alvo: string | null; data: string };
-      oficina_sexta: { id: string; titulo: string; ministrante: string; publico_alvo: string | null; data: string };
+      oficina_quinta: OficinaConsulta;
+      oficina_sexta: OficinaConsulta;
+      total_horas: number;
     }
   | { status: "nao_encontrado" }
   | { status: "cpf_invalido" };
