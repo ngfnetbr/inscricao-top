@@ -224,7 +224,7 @@ function PainelCertificado() {
         node.remove();
         await new Promise((r) => setTimeout(r, 30));
       }
-      toast.success(`${bulkData.length} certificado(s) baixado(s).`);
+      toast.success(`${lista.length} certificado(s) baixado(s).`);
     } catch (e) {
       console.error(e);
       toast.error("Falha ao gerar PDFs em lote.");
