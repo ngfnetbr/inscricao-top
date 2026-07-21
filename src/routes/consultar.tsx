@@ -11,7 +11,7 @@ export const Route = createFileRoute("/consultar")({
 });
 
 function ConsultarPage() {
-  const { data: manutencao } = useManutencao();
+  const { data: manutencao, isLoading: manutencaoLoading } = useManutencao();
   const [cpf, setCpf] = useState("");
   const [buscando, setBuscando] = useState(false);
   const [resultado, setResultado] = useState<ConsultaResultado | null>(null);
