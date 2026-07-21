@@ -124,8 +124,11 @@ function LoginForm() {
 function Painel({ email }: { email: string }) {
   const [inscricoes, setInscricoes] = useState<Inscricao[]>([]);
   const [oficinas, setOficinas] = useState<OficinaComVagas[]>([]);
+  const [presencas, setPresencas] = useState<Array<{ inscricao_id: string; oficina_id: string; manha: boolean; tarde: boolean }>>([]);
   const [carregando, setCarregando] = useState(true);
-  const [filtro, setFiltro] = useState("");
+  const [filtroNome, setFiltroNome] = useState("");
+  const [filtroCpf, setFiltroCpf] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState<"todos" | "sem_chamada" | "parcial" | "concluido">("todos");
   const [editando, setEditando] = useState<Inscricao | null>(null);
   const [editandoOficina, setEditandoOficina] = useState<OficinaComVagas | null>(null);
   const [oficinaAberta, setOficinaAberta] = useState<string | null>(null);
@@ -138,13 +141,15 @@ function Painel({ email }: { email: string }) {
 
   async function carregar() {
     setCarregando(true);
-    const [insc, ofs] = await Promise.all([
+    const [insc, ofs, pres] = await Promise.all([
       supabase.from("inscricoes").select("*").order("criado_em", { ascending: false }),
       listarOficinas(true),
+      supabase.from("presencas").select("inscricao_id, oficina_id, manha, tarde"),
     ]);
     if (insc.error) toast.error("Falha ao carregar inscrições.");
     setInscricoes((insc.data ?? []) as Inscricao[]);
     setOficinas(ofs);
+    setPresencas((pres.data ?? []) as typeof presencas);
     setCarregando(false);
   }
 
@@ -237,21 +242,31 @@ function Painel({ email }: { email: string }) {
     return m;
   }, [inscricoes]);
 
-  const inscricoesFiltradas = useMemo(() => {
-    const f = filtro.trim().toLowerCase();
-    if (!f) return inscricoes;
-    return inscricoes.filter((i) => {
-      const q = mapaOficinas.get(i.oficina_quinta_id);
-      const s = mapaOficinas.get(i.oficina_sexta_id);
-      return (
-        i.nome.toLowerCase().includes(f) ||
-        i.cpf.includes(f.replace(/\D/g, "")) ||
-        i.protocolo.toLowerCase().includes(f) ||
-        (q?.titulo.toLowerCase().includes(f) ?? false) ||
-        (s?.titulo.toLowerCase().includes(f) ?? false)
-      );
+  const statusPorInscricao = useMemo(() => {
+    const m = new Map<string, { horas: number; status: "sem_chamada" | "parcial" | "concluido"; qHoras: number; sHoras: number }>();
+    inscricoes.forEach((i) => {
+      const pq = presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_quinta_id);
+      const ps = presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_sexta_id);
+      const qHoras = (pq?.manha ? 4 : 0) + (pq?.tarde ? 4 : 0);
+      const sHoras = (ps?.manha ? 4 : 0) + (ps?.tarde ? 4 : 0);
+      const horas = qHoras + sHoras;
+      const status: "sem_chamada" | "parcial" | "concluido" =
+        !pq && !ps ? "sem_chamada" : horas >= 16 ? "concluido" : "parcial";
+      m.set(i.id, { horas, status, qHoras, sHoras });
     });
-  }, [filtro, inscricoes, mapaOficinas]);
+    return m;
+  }, [inscricoes, presencas]);
+
+  const inscricoesFiltradas = useMemo(() => {
+    const fn = filtroNome.trim().toLowerCase();
+    const fc = filtroCpf.replace(/\D/g, "");
+    return inscricoes.filter((i) => {
+      if (fn && !i.nome.toLowerCase().includes(fn)) return false;
+      if (fc && !i.cpf.includes(fc)) return false;
+      if (filtroStatus !== "todos" && statusPorInscricao.get(i.id)?.status !== filtroStatus) return false;
+      return true;
+    });
+  }, [filtroNome, filtroCpf, filtroStatus, inscricoes, statusPorInscricao]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -343,29 +358,56 @@ function Painel({ email }: { email: string }) {
           />
         </div>
 
-        <div className="mt-8 mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div className="mt-8 mb-3">
           <h2 className="text-xl font-bold text-foreground">
             Inscrições ({inscricoesFiltradas.length}
-            {filtro && ` de ${inscricoes.length}`})
+            {(filtroNome || filtroCpf || filtroStatus !== "todos") && ` de ${inscricoes.length}`})
           </h2>
-          <input
-            value={filtro}
-            onChange={(e) => setFiltro(e.target.value)}
-            placeholder="Buscar por nome, CPF, protocolo ou oficina..."
-            className="h-10 w-full max-w-md rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
-          />
+          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+            <input
+              value={filtroNome}
+              onChange={(e) => setFiltroNome(e.target.value)}
+              placeholder="Filtrar por nome..."
+              className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+            />
+            <input
+              value={filtroCpf}
+              onChange={(e) => setFiltroCpf(e.target.value)}
+              placeholder="Filtrar por CPF..."
+              inputMode="numeric"
+              className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+            />
+            <select
+              value={filtroStatus}
+              onChange={(e) => setFiltroStatus(e.target.value as typeof filtroStatus)}
+              className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/40 sm:w-52"
+            >
+              <option value="todos">Todos os status</option>
+              <option value="sem_chamada">Sem chamada</option>
+              <option value="parcial">Parcial</option>
+              <option value="concluido">Concluído (16h)</option>
+            </select>
+          </div>
+          {(filtroNome || filtroCpf || filtroStatus !== "todos") && (
+            <button
+              onClick={() => { setFiltroNome(""); setFiltroCpf(""); setFiltroStatus("todos"); }}
+              className="mt-2 text-xs text-muted-foreground underline hover:text-foreground"
+            >
+              Limpar filtros
+            </button>
+          )}
         </div>
 
         <div className="card-elevated overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-sm">
+            <table className="w-full min-w-[960px] text-sm">
               <thead className="bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-3">Protocolo</th>
                   <th className="px-3 py-3">Nome</th>
                   <th className="px-3 py-3">CPF</th>
                   <th className="px-3 py-3">Quinta</th>
                   <th className="px-3 py-3">Sexta</th>
+                  <th className="px-3 py-3">Status</th>
                   <th className="px-3 py-3">Data</th>
                   <th className="px-3 py-3 text-right">Ações</th>
                 </tr>
@@ -385,36 +427,51 @@ function Painel({ email }: { email: string }) {
                     </td>
                   </tr>
                 )}
-                {inscricoesFiltradas.map((i) => (
-                  <tr key={i.id}>
-                    <td className="px-3 py-3 font-mono text-xs">{i.protocolo}</td>
-                    <td className="px-3 py-3 font-medium text-foreground">{i.nome}</td>
-                    <td className="px-3 py-3">{formatarCpf(i.cpf)}</td>
-                    <td className="px-3 py-3">{mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—"}</td>
-                    <td className="px-3 py-3">{mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—"}</td>
-                    <td className="px-3 py-3 text-xs text-muted-foreground">
-                      {new Date(i.criado_em).toLocaleString("pt-BR")}
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          onClick={() => setEditando(i)}
-                          title="Editar / Transferir"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card hover:bg-muted"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => excluirInscricao(i)}
-                          title="Excluir"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-destructive/40 bg-card text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {inscricoesFiltradas.map((i) => {
+                  const st = statusPorInscricao.get(i.id);
+                  const badge =
+                    st?.status === "concluido"
+                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                      : st?.status === "parcial"
+                        ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                        : "bg-muted text-muted-foreground border-border";
+                  const label =
+                    st?.status === "concluido" ? "Concluído" : st?.status === "parcial" ? "Parcial" : "Sem chamada";
+                  return (
+                    <tr key={i.id}>
+                      <td className="px-3 py-3 font-medium text-foreground">{i.nome}</td>
+                      <td className="px-3 py-3">{formatarCpf(i.cpf)}</td>
+                      <td className="px-3 py-3">{mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—"}</td>
+                      <td className="px-3 py-3">{mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—"}</td>
+                      <td className="px-3 py-3">
+                        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${badge}`}>
+                          {label} · {st?.horas ?? 0}h
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-xs text-muted-foreground">
+                        {new Date(i.criado_em).toLocaleString("pt-BR")}
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex justify-end gap-1">
+                          <button
+                            onClick={() => setEditando(i)}
+                            title="Editar / Transferir"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card hover:bg-muted"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => excluirInscricao(i)}
+                            title="Excluir"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-destructive/40 bg-card text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
