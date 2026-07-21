@@ -353,11 +353,13 @@ function Etapa1(props: {
   buscarCpf: () => void;
   buscando: boolean;
   avancar: () => void;
+  onVoltarInicio: () => void;
 }) {
   const {
     cpf, setCpf, nome, setNome, statusBusca, setStatusBusca,
-    pessoaEncontrada, buscarCpf, buscando, avancar,
+    pessoaEncontrada, buscarCpf, buscando, avancar, onVoltarInicio,
   } = props;
+  const [avisoNaoSouEu, setAvisoNaoSouEu] = useState(false);
 
   return (
     <section className="card-elevated p-6 sm:p-8">
@@ -376,7 +378,10 @@ function Etapa1(props: {
             autoComplete="off"
             placeholder="000.000.000-00"
             value={formatarCpf(cpf)}
-            onChange={(e) => setCpf(normalizarCpf(e.target.value))}
+            onChange={(e) => {
+              setCpf(normalizarCpf(e.target.value));
+              setAvisoNaoSouEu(false);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && statusBusca === "idle") {
                 e.preventDefault();
@@ -403,33 +408,52 @@ function Etapa1(props: {
         <div className="mt-6 rounded-2xl border border-primary/30 bg-accent/60 p-5">
           <p className="text-sm text-muted-foreground">Encontramos este cadastro:</p>
           <p className="mt-1 text-xl font-bold text-foreground">{pessoaEncontrada.nome}</p>
-          <p className="mt-3 text-sm font-medium text-foreground">É você?</p>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <p className="mt-4 text-sm font-medium text-foreground">O que deseja fazer?</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <button
               onClick={avancar}
-              className="brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-95"
+              className="brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-95"
             >
               <CheckCircle2 className="h-4 w-4" /> Sim, sou eu
             </button>
             <button
               onClick={() => {
+                setAvisoNaoSouEu(false);
                 setStatusBusca("editando");
                 setNome(pessoaEncontrada.nome);
               }}
-              className="rounded-xl border border-primary/40 bg-card px-5 py-3 text-sm font-medium text-foreground hover:bg-muted"
+              className="rounded-xl border border-primary/40 bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
             >
               Sou eu, mas meu nome está incorreto
             </button>
             <button
-              onClick={() => {
-                setStatusBusca("editando");
-                setNome("");
-              }}
-              className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-medium text-foreground hover:bg-muted"
+              onClick={() => setAvisoNaoSouEu(true)}
+              className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 hover:bg-amber-100"
             >
-              Não sou eu
+              Meu CPF está correto, mas não sou eu
+            </button>
+            <button
+              onClick={onVoltarInicio}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              <Home className="h-4 w-4" /> Digitei o CPF errado, voltar ao início
             </button>
           </div>
+
+          {avisoNaoSouEu && (
+            <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+              <p className="font-semibold">Não é possível continuar com este CPF</p>
+              <p className="mt-1">
+                O CPF informado já pertence a outra pessoa em nossa base. Verifique se digitou corretamente ou procure a organização do evento.
+              </p>
+              <button
+                onClick={onVoltarInicio}
+                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-200 px-3 py-1.5 text-sm font-medium text-amber-950 hover:bg-amber-300"
+              >
+                <Home className="h-3.5 w-3.5" /> Voltar ao início
+              </button>
+            </div>
+          )}
         </div>
       )}
 
