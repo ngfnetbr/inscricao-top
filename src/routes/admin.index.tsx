@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatarCpf } from "@/lib/format";
 import { listarOficinas, type OficinaComVagas } from "@/lib/oficinas";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/admin/")({
   component: AdminPage,
 });
 
