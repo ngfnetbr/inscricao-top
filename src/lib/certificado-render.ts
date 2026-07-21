@@ -34,7 +34,7 @@ export function renderCertificadoOffscreen(
     "position:relative;width:1400px;height:990px;background:#fff;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#111;";
   node.innerHTML = `
     <img src="${imgUrl}" alt="" crossorigin="anonymous" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;" />
-    <div style="position:absolute;top:30%;left:4%;width:40%;text-align:center;word-wrap:break-word;overflow-wrap:break-word;">
+    <div style="position:absolute;top:28%;left:3%;width:40%;text-align:center;word-wrap:break-word;overflow-wrap:break-word;">
       <p style="font-size:19px;margin:0;color:#222;">Certificamos que</p>
       <p style="font-size:30px;font-weight:800;margin:6px 0 4px 0;line-height:1.15;overflow-wrap:break-word;">${escapeHtml(nomeExibicao)},</p>
       <p style="font-size:16px;margin:0 0 20px 0;color:#222;">inscrito(a) no CPF ${escapeHtml(cpfFmt)}</p>
