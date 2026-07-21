@@ -164,6 +164,15 @@ export type Database = {
       }
     }
     Functions: {
+      admin_atualizar_inscricao: {
+        Args: {
+          _inscricao_id: string
+          _nome?: string
+          _oficina_quinta: string
+          _oficina_sexta: string
+        }
+        Returns: Json
+      }
       buscar_pessoa_por_cpf: {
         Args: { _cpf: string }
         Returns: {
