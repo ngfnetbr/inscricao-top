@@ -8,13 +8,9 @@ const PADRAO: Manutencao = {
 };
 
 export async function obterManutencao(): Promise<Manutencao> {
-  const { data, error } = await supabase
-    .from("configuracoes")
-    .select("valor")
-    .eq("chave", "manutencao")
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("obter_manutencao");
   if (error || !data) return PADRAO;
-  const v = (data.valor ?? {}) as Partial<Manutencao>;
+  const v = (data ?? {}) as Partial<Manutencao>;
   return {
     ativo: Boolean(v.ativo),
     mensagem: (v.mensagem ?? PADRAO.mensagem).toString(),
