@@ -35,7 +35,7 @@ type Sucesso = {
   oficinaSexta: OficinaComVagas;
 };
 
-function InscricaoPage() {
+export function InscricaoPage({ bypassManutencao = false }: { bypassManutencao?: boolean } = {}) {
   const { data: manutencao, isLoading: manutencaoLoading } = useManutencao();
   const [etapa, setEtapa] = useState<Etapa>(0);
 
