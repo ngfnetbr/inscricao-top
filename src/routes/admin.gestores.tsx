@@ -133,45 +133,82 @@ function AdminGestores() {
             Nenhum gestor cadastrado.
           </p>
         ) : (
-          <ul className="card-elevated divide-y divide-border overflow-hidden">
-            {gestores.map((g) => (
-              <li key={g.user_id} className="p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground">{g.nome || "(sem nome)"}</p>
-                    <p className="text-xs text-muted-foreground">{g.email}</p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {g.oficinas.length === 0 && (
-                        <span className="text-xs text-muted-foreground">Nenhuma oficina atribuída</span>
-                      )}
-                      {g.oficinas.map((o) => (
-                        <span
-                          key={o.id}
-                          className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"
-                        >
-                          {o.dia === "quinta" ? "Q" : "S"} · {o.titulo}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => setEditando(g)}
-                      className="rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-muted"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => excluir(g)}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-destructive/40 bg-card text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+          (() => {
+            const grupos = new Map<string, { titulo: string; dia: string; ordem: number; gestores: Gestor[] }>();
+            oficinas.forEach((o, idx) => {
+              grupos.set(o.id, { titulo: o.titulo, dia: o.dia, ordem: idx, gestores: [] });
+            });
+            const semOficina: Gestor[] = [];
+            gestores.forEach((g) => {
+              if (g.oficinas.length === 0) {
+                semOficina.push(g);
+                return;
+              }
+              g.oficinas.forEach((o) => {
+                const grp = grupos.get(o.id);
+                if (grp) grp.gestores.push(g);
+                else {
+                  grupos.set(o.id, { titulo: o.titulo, dia: o.dia, ordem: 9999, gestores: [g] });
+                }
+              });
+            });
+            const ordenados = Array.from(grupos.entries())
+              .filter(([, v]) => v.gestores.length > 0)
+              .sort((a, b) => {
+                if (a[1].dia !== b[1].dia) return a[1].dia === "quinta" ? -1 : 1;
+                return a[1].ordem - b[1].ordem;
+              });
+
+            const renderGestor = (g: Gestor) => (
+              <li key={g.user_id} className="flex flex-wrap items-center justify-between gap-2 p-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">{g.nome || "(sem nome)"}</p>
+                  <p className="text-xs text-muted-foreground">{g.email}</p>
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setEditando(g)}
+                    className="rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-muted"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => excluir(g)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-destructive/40 bg-card text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               </li>
-            ))}
-          </ul>
+            );
+
+            return (
+              <div className="space-y-5">
+                {ordenados.map(([id, grp]) => (
+                  <section key={id} className="card-elevated overflow-hidden">
+                    <header className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${grp.dia === "quinta" ? "bg-primary/15 text-primary" : "bg-accent/20 text-accent-foreground"}`}>
+                          {grp.dia === "quinta" ? "Quinta" : "Sexta"}
+                        </span>
+                        <h2 className="text-sm font-semibold text-foreground">{grp.titulo}</h2>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{grp.gestores.length} gestor(es)</span>
+                    </header>
+                    <ul className="divide-y divide-border">{grp.gestores.map(renderGestor)}</ul>
+                  </section>
+                ))}
+                {semOficina.length > 0 && (
+                  <section className="card-elevated overflow-hidden">
+                    <header className="border-b border-border bg-muted/40 px-4 py-2">
+                      <h2 className="text-sm font-semibold text-foreground">Sem oficina atribuída</h2>
+                    </header>
+                    <ul className="divide-y divide-border">{semOficina.map(renderGestor)}</ul>
+                  </section>
+                )}
+              </div>
+            );
+          })()
         )}
       </main>
 
