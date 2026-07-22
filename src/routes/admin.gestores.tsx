@@ -134,9 +134,9 @@ function AdminGestores() {
           </p>
         ) : (
           (() => {
-            const grupos = new Map<string, { titulo: string; dia: string; ordem: number; gestores: Gestor[] }>();
+            const grupos = new Map<string, { titulo: string; ministrante: string; dia: string; ordem: number; gestores: Gestor[] }>();
             oficinas.forEach((o, idx) => {
-              grupos.set(o.id, { titulo: o.titulo, dia: o.dia, ordem: idx, gestores: [] });
+              grupos.set(o.id, { titulo: o.titulo, ministrante: o.ministrante, dia: o.dia, ordem: idx, gestores: [] });
             });
             const semOficina: Gestor[] = [];
             gestores.forEach((g) => {
@@ -148,7 +148,7 @@ function AdminGestores() {
                 const grp = grupos.get(o.id);
                 if (grp) grp.gestores.push(g);
                 else {
-                  grupos.set(o.id, { titulo: o.titulo, dia: o.dia, ordem: 9999, gestores: [g] });
+                  grupos.set(o.id, { titulo: o.titulo, ministrante: "", dia: o.dia, ordem: 9999, gestores: [g] });
                 }
               });
             });
