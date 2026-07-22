@@ -153,11 +153,11 @@ function AdminGestores() {
               });
             });
             const ordenados = Array.from(grupos.entries())
-              .filter(([, v]) => v.gestores.length > 0)
               .sort((a, b) => {
                 if (a[1].dia !== b[1].dia) return a[1].dia === "quinta" ? -1 : 1;
                 return a[1].ordem - b[1].ordem;
               });
+            const semGestor = ordenados.filter(([, v]) => v.gestores.length === 0);
 
             const renderGestor = (g: Gestor) => (
               <li key={g.user_id} className="flex flex-wrap items-center justify-between gap-2 p-3">
