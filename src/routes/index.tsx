@@ -35,7 +35,7 @@ type Sucesso = {
   oficinaSexta: OficinaComVagas;
 };
 
-function InscricaoPage() {
+export function InscricaoPage({ bypassManutencao = false }: { bypassManutencao?: boolean } = {}) {
   const { data: manutencao, isLoading: manutencaoLoading } = useManutencao();
   const [etapa, setEtapa] = useState<Etapa>(0);
 
@@ -186,8 +186,10 @@ function InscricaoPage() {
     setConfirmando(false);
   }
 
-  if (manutencaoLoading) return <div className="min-h-screen bg-background" />;
-  if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
+  if (!bypassManutencao) {
+    if (manutencaoLoading) return <div className="min-h-screen bg-background" />;
+    if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
+  }
 
   return (
     <div className="min-h-screen bg-background">

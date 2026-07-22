@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ParticipantesRouteImport } from './routes/participantes'
+import { Route as InscricaoInternaRouteImport } from './routes/inscricao-interna'
 import { Route as ConsultarRouteImport } from './routes/consultar'
 import { Route as CertificadoRouteImport } from './routes/certificado'
 import { Route as IndexRouteImport } from './routes/index'
@@ -22,6 +23,11 @@ import { Route as AdminGestoresRouteImport } from './routes/admin.gestores'
 const ParticipantesRoute = ParticipantesRouteImport.update({
   id: '/participantes',
   path: '/participantes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InscricaoInternaRoute = InscricaoInternaRouteImport.update({
+  id: '/inscricao-interna',
+  path: '/inscricao-interna',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConsultarRoute = ConsultarRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/certificado': typeof CertificadoRoute
   '/consultar': typeof ConsultarRoute
+  '/inscricao-interna': typeof InscricaoInternaRoute
   '/participantes': typeof ParticipantesRoute
   '/admin/gestores': typeof AdminGestoresRoute
   '/admin/pessoas': typeof AdminPessoasRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/certificado': typeof CertificadoRoute
   '/consultar': typeof ConsultarRoute
+  '/inscricao-interna': typeof InscricaoInternaRoute
   '/participantes': typeof ParticipantesRoute
   '/admin/gestores': typeof AdminGestoresRoute
   '/admin/pessoas': typeof AdminPessoasRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/certificado': typeof CertificadoRoute
   '/consultar': typeof ConsultarRoute
+  '/inscricao-interna': typeof InscricaoInternaRoute
   '/participantes': typeof ParticipantesRoute
   '/admin/gestores': typeof AdminGestoresRoute
   '/admin/pessoas': typeof AdminPessoasRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/certificado'
     | '/consultar'
+    | '/inscricao-interna'
     | '/participantes'
     | '/admin/gestores'
     | '/admin/pessoas'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/certificado'
     | '/consultar'
+    | '/inscricao-interna'
     | '/participantes'
     | '/admin/gestores'
     | '/admin/pessoas'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/certificado'
     | '/consultar'
+    | '/inscricao-interna'
     | '/participantes'
     | '/admin/gestores'
     | '/admin/pessoas'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CertificadoRoute: typeof CertificadoRoute
   ConsultarRoute: typeof ConsultarRoute
+  InscricaoInternaRoute: typeof InscricaoInternaRoute
   ParticipantesRoute: typeof ParticipantesRoute
   AdminGestoresRoute: typeof AdminGestoresRoute
   AdminPessoasRoute: typeof AdminPessoasRoute
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/participantes'
       fullPath: '/participantes'
       preLoaderRoute: typeof ParticipantesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inscricao-interna': {
+      id: '/inscricao-interna'
+      path: '/inscricao-interna'
+      fullPath: '/inscricao-interna'
+      preLoaderRoute: typeof InscricaoInternaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/consultar': {
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CertificadoRoute: CertificadoRoute,
   ConsultarRoute: ConsultarRoute,
+  InscricaoInternaRoute: InscricaoInternaRoute,
   ParticipantesRoute: ParticipantesRoute,
   AdminGestoresRoute: AdminGestoresRoute,
   AdminPessoasRoute: AdminPessoasRoute,
