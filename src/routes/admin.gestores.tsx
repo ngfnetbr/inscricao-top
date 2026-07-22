@@ -182,8 +182,25 @@ function AdminGestores() {
               </li>
             );
 
+            const emailsGestores = gestores.map((g) => g.email).join("; ");
+
             return (
               <div className="space-y-5">
+                <div className="rounded-lg border border-border bg-card p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm font-semibold text-foreground">E-mails dos gestores</p>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(emailsGestores);
+                        toast.success("E-mails copiados.");
+                      }}
+                      className="text-xs font-medium text-primary hover:underline"
+                    >
+                      Copiar
+                    </button>
+                  </div>
+                  <p className="break-all text-xs text-muted-foreground">{emailsGestores}</p>
+                </div>
                 {semGestor.length > 0 && (
                   <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
                     <p className="text-sm font-semibold text-destructive">
