@@ -153,11 +153,11 @@ function AdminGestores() {
               });
             });
             const ordenados = Array.from(grupos.entries())
-              .filter(([, v]) => v.gestores.length > 0)
               .sort((a, b) => {
                 if (a[1].dia !== b[1].dia) return a[1].dia === "quinta" ? -1 : 1;
                 return a[1].ordem - b[1].ordem;
               });
+            const semGestor = ordenados.filter(([, v]) => v.gestores.length === 0);
 
             const renderGestor = (g: Gestor) => (
               <li key={g.user_id} className="flex flex-wrap items-center justify-between gap-2 p-3">
@@ -184,6 +184,20 @@ function AdminGestores() {
 
             return (
               <div className="space-y-5">
+                {semGestor.length > 0 && (
+                  <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+                    <p className="text-sm font-semibold text-destructive">
+                      {semGestor.length} oficina(s) sem gestor atribuído
+                    </p>
+                    <ul className="mt-1 flex flex-wrap gap-1">
+                      {semGestor.map(([id, grp]) => (
+                        <li key={id} className="rounded-full bg-destructive/15 px-2 py-0.5 text-[11px] font-medium text-destructive">
+                          {grp.dia === "quinta" ? "Q" : "S"} · {grp.titulo}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {ordenados.map(([id, grp]) => (
                   <section key={id} className="card-elevated overflow-hidden">
                     <header className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2">
@@ -198,9 +212,19 @@ function AdminGestores() {
                           )}
                         </div>
                       </div>
-                      <span className="text-xs text-muted-foreground">{grp.gestores.length} gestor(es)</span>
+                      {grp.gestores.length === 0 ? (
+                        <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-destructive">
+                          Sem gestor
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">{grp.gestores.length} gestor(es)</span>
+                      )}
                     </header>
-                    <ul className="divide-y divide-border">{grp.gestores.map(renderGestor)}</ul>
+                    {grp.gestores.length === 0 ? (
+                      <p className="px-4 py-3 text-xs text-muted-foreground">Nenhum gestor atribuído a esta oficina.</p>
+                    ) : (
+                      <ul className="divide-y divide-border">{grp.gestores.map(renderGestor)}</ul>
+                    )}
                   </section>
                 ))}
                 {semOficina.length > 0 && (
