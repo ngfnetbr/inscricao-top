@@ -163,7 +163,7 @@ function AdminGestores() {
               <li key={g.user_id} className="flex flex-wrap items-center justify-between gap-2 p-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground">{g.nome || "(sem nome)"}</p>
-                  <p className="text-xs text-muted-foreground">{g.email}</p>
+                  <p className="text-xs font-medium text-primary">{g.email}</p>
                 </div>
                 <div className="flex gap-1">
                   <button
