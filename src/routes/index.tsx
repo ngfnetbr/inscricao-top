@@ -186,8 +186,10 @@ export function InscricaoPage({ bypassManutencao = false }: { bypassManutencao?:
     setConfirmando(false);
   }
 
-  if (manutencaoLoading) return <div className="min-h-screen bg-background" />;
-  if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
+  if (!bypassManutencao) {
+    if (manutencaoLoading) return <div className="min-h-screen bg-background" />;
+    if (manutencao?.ativo) return <TelaManutencao mensagem={manutencao.mensagem} />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
