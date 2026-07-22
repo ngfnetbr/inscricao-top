@@ -426,6 +426,7 @@ export type Database = {
         }
         Returns: Json
       }
+      obter_manutencao: { Args: never; Returns: Json }
       set_manutencao: {
         Args: { _ativo: boolean; _mensagem?: string }
         Returns: Json
