@@ -263,16 +263,20 @@ function Painel({ email }: { email: string }) {
   }, [inscricoes]);
 
   const statusPorInscricao = useMemo(() => {
-    const m = new Map<string, { horas: number; status: "sem_chamada" | "parcial" | "concluido"; qHoras: number; sHoras: number }>();
+    const m = new Map<string, { horas: number; status: "sem_chamada" | "parcial" | "concluido" | "incompleto"; qHoras: number; sHoras: number; incompleto: boolean }>();
     inscricoes.forEach((i) => {
-      const pq = presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_quinta_id);
-      const ps = presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_sexta_id);
+      const pq = i.oficina_quinta_id ? presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_quinta_id) : undefined;
+      const ps = i.oficina_sexta_id ? presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_sexta_id) : undefined;
       const qHoras = (pq?.manha ? 4 : 0) + (pq?.tarde ? 4 : 0);
       const sHoras = (ps?.manha ? 4 : 0) + (ps?.tarde ? 4 : 0);
       const horas = qHoras + sHoras;
-      const status: "sem_chamada" | "parcial" | "concluido" =
-        !pq && !ps ? "sem_chamada" : horas >= 16 ? "concluido" : "parcial";
-      m.set(i.id, { horas, status, qHoras, sHoras });
+      const incompleto = !i.oficina_quinta_id || !i.oficina_sexta_id;
+      let status: "sem_chamada" | "parcial" | "concluido" | "incompleto";
+      if (incompleto && !pq && !ps) status = "incompleto";
+      else if (!pq && !ps) status = "sem_chamada";
+      else if (horas >= (incompleto ? 8 : 16)) status = "concluido";
+      else status = "parcial";
+      m.set(i.id, { horas, status, qHoras, sHoras, incompleto });
     });
     return m;
   }, [inscricoes, presencas]);
