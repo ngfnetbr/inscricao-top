@@ -36,8 +36,8 @@ type Inscricao = {
   nome: string;
   protocolo: string;
   criado_em: string;
-  oficina_quinta_id: string;
-  oficina_sexta_id: string;
+  oficina_quinta_id: string | null;
+  oficina_sexta_id: string | null;
 };
 
 function AdminPage() {
@@ -146,7 +146,8 @@ function Painel({ email }: { email: string }) {
   const [carregando, setCarregando] = useState(true);
   const [filtroNome, setFiltroNome] = useState("");
   const [filtroCpf, setFiltroCpf] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState<"todos" | "sem_chamada" | "parcial" | "concluido">("todos");
+  const [filtroStatus, setFiltroStatus] = useState<"todos" | "sem_chamada" | "parcial" | "concluido" | "incompleto">("todos");
+  const [criandoInscricao, setCriandoInscricao] = useState(false);
   const [editando, setEditando] = useState<Inscricao | null>(null);
   const [editandoOficina, setEditandoOficina] = useState<OficinaComVagas | null>(null);
   const [oficinaAberta, setOficinaAberta] = useState<string | null>(null);
@@ -218,8 +219,8 @@ function Painel({ email }: { email: string }) {
     const linhas = [
       ["Protocolo", "Nome", "CPF", "Oficina Quinta", "Ministrante Quinta", "Oficina Sexta", "Ministrante Sexta", "Data/hora"],
       ...inscricoes.map((i) => {
-        const q = mapaOficinas.get(i.oficina_quinta_id);
-        const s = mapaOficinas.get(i.oficina_sexta_id);
+        const q = i.oficina_quinta_id ? mapaOficinas.get(i.oficina_quinta_id) : undefined;
+        const s = i.oficina_sexta_id ? mapaOficinas.get(i.oficina_sexta_id) : undefined;
         return [
           i.protocolo,
           i.nome,
@@ -250,6 +251,7 @@ function Painel({ email }: { email: string }) {
     const m = new Map<string, Inscricao[]>();
     inscricoes.forEach((i) => {
       for (const oid of [i.oficina_quinta_id, i.oficina_sexta_id]) {
+        if (!oid) continue;
         const arr = m.get(oid) ?? [];
         arr.push(i);
         m.set(oid, arr);
@@ -261,16 +263,20 @@ function Painel({ email }: { email: string }) {
   }, [inscricoes]);
 
   const statusPorInscricao = useMemo(() => {
-    const m = new Map<string, { horas: number; status: "sem_chamada" | "parcial" | "concluido"; qHoras: number; sHoras: number }>();
+    const m = new Map<string, { horas: number; status: "sem_chamada" | "parcial" | "concluido" | "incompleto"; qHoras: number; sHoras: number; incompleto: boolean }>();
     inscricoes.forEach((i) => {
-      const pq = presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_quinta_id);
-      const ps = presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_sexta_id);
+      const pq = i.oficina_quinta_id ? presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_quinta_id) : undefined;
+      const ps = i.oficina_sexta_id ? presencas.find((p) => p.inscricao_id === i.id && p.oficina_id === i.oficina_sexta_id) : undefined;
       const qHoras = (pq?.manha ? 4 : 0) + (pq?.tarde ? 4 : 0);
       const sHoras = (ps?.manha ? 4 : 0) + (ps?.tarde ? 4 : 0);
       const horas = qHoras + sHoras;
-      const status: "sem_chamada" | "parcial" | "concluido" =
-        !pq && !ps ? "sem_chamada" : horas >= 16 ? "concluido" : "parcial";
-      m.set(i.id, { horas, status, qHoras, sHoras });
+      const incompleto = !i.oficina_quinta_id || !i.oficina_sexta_id;
+      let status: "sem_chamada" | "parcial" | "concluido" | "incompleto";
+      if (incompleto && !pq && !ps) status = "incompleto";
+      else if (!pq && !ps) status = "sem_chamada";
+      else if (horas >= (incompleto ? 8 : 16)) status = "concluido";
+      else status = "parcial";
+      m.set(i.id, { horas, status, qHoras, sHoras, incompleto });
     });
     return m;
   }, [inscricoes, presencas]);
@@ -390,10 +396,18 @@ function Painel({ email }: { email: string }) {
         </div>
 
         <div className="mt-8 mb-3">
-          <h2 className="text-xl font-bold text-foreground">
-            Inscrições ({inscricoesFiltradas.length}
-            {(filtroNome || filtroCpf || filtroStatus !== "todos") && ` de ${inscricoes.length}`})
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-xl font-bold text-foreground">
+              Inscrições ({inscricoesFiltradas.length}
+              {(filtroNome || filtroCpf || filtroStatus !== "todos") && ` de ${inscricoes.length}`})
+            </h2>
+            <button
+              onClick={() => setCriandoInscricao(true)}
+              className="brand-gradient inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              <Plus className="h-4 w-4" /> Nova inscrição
+            </button>
+          </div>
           <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
             <input
               value={filtroNome}
@@ -414,9 +428,10 @@ function Painel({ email }: { email: string }) {
               className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/40 sm:w-52"
             >
               <option value="todos">Todos os status</option>
+              <option value="incompleto">Incompleta (falta 1 oficina)</option>
               <option value="sem_chamada">Sem chamada</option>
               <option value="parcial">Parcial</option>
-              <option value="concluido">Concluído (16h)</option>
+              <option value="concluido">Concluído</option>
             </select>
           </div>
           {(filtroNome || filtroCpf || filtroStatus !== "todos") && (
@@ -466,15 +481,27 @@ function Painel({ email }: { email: string }) {
                       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
                       : st?.status === "parcial"
                         ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
-                        : "bg-muted text-muted-foreground border-border";
+                        : st?.status === "incompleto"
+                          ? "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30"
+                          : "bg-muted text-muted-foreground border-border";
                   const label =
-                    st?.status === "concluido" ? "Concluído" : st?.status === "parcial" ? "Parcial" : "Sem chamada";
+                    st?.status === "concluido" ? "Concluído"
+                      : st?.status === "parcial" ? "Parcial"
+                      : st?.status === "incompleto" ? "Incompleta"
+                      : "Sem chamada";
                   return (
                     <tr key={i.id}>
-                      <td className="px-3 py-3 font-medium text-foreground">{i.nome}</td>
+                      <td className="px-3 py-3 font-medium text-foreground">
+                        {i.nome}
+                        {st?.incompleto && (
+                          <span className="ml-2 rounded-full bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-orange-700 dark:text-orange-400">
+                            falta 1 oficina
+                          </span>
+                        )}
+                      </td>
                       <td className="px-3 py-3">{formatarCpf(i.cpf)}</td>
-                      <td className="px-3 py-3">{mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—"}</td>
-                      <td className="px-3 py-3">{mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—"}</td>
+                      <td className="px-3 py-3">{i.oficina_quinta_id ? (mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—") : <span className="text-orange-600">— Sem oficina —</span>}</td>
+                      <td className="px-3 py-3">{i.oficina_sexta_id ? (mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—") : <span className="text-orange-600">— Sem oficina —</span>}</td>
                       <td className="px-3 py-3">
                         <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${badge}`}>
                           {label} · {st?.horas ?? 0}h
@@ -523,15 +550,23 @@ function Painel({ email }: { email: string }) {
                   ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
                   : st?.status === "parcial"
                     ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
-                    : "bg-muted text-muted-foreground border-border";
+                    : st?.status === "incompleto"
+                      ? "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30"
+                      : "bg-muted text-muted-foreground border-border";
               const label =
-                st?.status === "concluido" ? "Concluído" : st?.status === "parcial" ? "Parcial" : "Sem chamada";
+                st?.status === "concluido" ? "Concluído"
+                  : st?.status === "parcial" ? "Parcial"
+                  : st?.status === "incompleto" ? "Incompleta"
+                  : "Sem chamada";
               return (
                 <li key={i.id} className="p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-foreground">{i.nome}</p>
                       <p className="text-xs text-muted-foreground">{formatarCpf(i.cpf)}</p>
+                      {st?.incompleto && (
+                        <p className="mt-1 text-[10px] font-bold uppercase text-orange-700 dark:text-orange-400">Falta 1 oficina</p>
+                      )}
                     </div>
                     <div className="flex shrink-0 gap-1">
                       <button
@@ -553,11 +588,11 @@ function Painel({ email }: { email: string }) {
                   <dl className="mt-2 space-y-1 text-xs">
                     <div className="flex gap-2">
                       <dt className="w-14 shrink-0 text-muted-foreground">Quinta</dt>
-                      <dd className="min-w-0 flex-1 text-foreground">{mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—"}</dd>
+                      <dd className="min-w-0 flex-1 text-foreground">{i.oficina_quinta_id ? (mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—") : <span className="text-orange-600">— Sem oficina —</span>}</dd>
                     </div>
                     <div className="flex gap-2">
                       <dt className="w-14 shrink-0 text-muted-foreground">Sexta</dt>
-                      <dd className="min-w-0 flex-1 text-foreground">{mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—"}</dd>
+                      <dd className="min-w-0 flex-1 text-foreground">{i.oficina_sexta_id ? (mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—") : <span className="text-orange-600">— Sem oficina —</span>}</dd>
                     </div>
                   </dl>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
@@ -574,6 +609,17 @@ function Painel({ email }: { email: string }) {
           </ul>
         </div>
       </main>
+
+      {criandoInscricao && (
+        <ModalNovaInscricao
+          oficinas={oficinas}
+          onFechar={() => setCriandoInscricao(false)}
+          onSalvo={() => {
+            setCriandoInscricao(false);
+            carregar();
+          }}
+        />
+      )}
 
       {editando && (
         <ModalEditar
@@ -724,8 +770,8 @@ function ModalEditar({
   onSalvo: () => void;
 }) {
   const [nome, setNome] = useState(inscricao.nome);
-  const [quintaId, setQuintaId] = useState(inscricao.oficina_quinta_id);
-  const [sextaId, setSextaId] = useState(inscricao.oficina_sexta_id);
+  const [quintaId, setQuintaId] = useState<string | null>(inscricao.oficina_quinta_id);
+  const [sextaId, setSextaId] = useState<string | null>(inscricao.oficina_sexta_id);
   const [salvando, setSalvando] = useState(false);
 
   const quintas = oficinas.filter((o) => o.dia === "quinta");
@@ -740,8 +786,8 @@ function ModalEditar({
     setSalvando(true);
     const { data, error } = await supabase.rpc("admin_atualizar_inscricao", {
       _inscricao_id: inscricao.id,
-      _oficina_quinta: quintaId,
-      _oficina_sexta: sextaId,
+      _oficina_quinta: quintaId as string,
+      _oficina_sexta: sextaId as string,
       _nome: nomeLimpo,
     });
     setSalvando(false);
@@ -782,10 +828,11 @@ function ModalEditar({
 
         <label className="mt-4 block text-sm font-medium">Oficina de quinta-feira</label>
         <select
-          value={quintaId}
-          onChange={(e) => setQuintaId(e.target.value)}
+          value={quintaId ?? ""}
+          onChange={(e) => setQuintaId(e.target.value || null)}
           className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
         >
+          <option value="">— Sem oficina (só sexta) —</option>
           {quintas.map((o) => (
             <option key={o.id} value={o.id}>
               {o.titulo} — {o.inscritos}/{o.limite_vagas}
@@ -795,10 +842,11 @@ function ModalEditar({
 
         <label className="mt-4 block text-sm font-medium">Oficina de sexta-feira</label>
         <select
-          value={sextaId}
-          onChange={(e) => setSextaId(e.target.value)}
+          value={sextaId ?? ""}
+          onChange={(e) => setSextaId(e.target.value || null)}
           className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
         >
+          <option value="">— Sem oficina (só quinta) —</option>
           {sextas.map((o) => (
             <option key={o.id} value={o.id}>
               {o.titulo} — {o.inscritos}/{o.limite_vagas}
@@ -1060,6 +1108,159 @@ function ManutencaoCard() {
               <Save className="h-4 w-4" /> Atualizar mensagem
             </button>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModalNovaInscricao({
+  oficinas,
+  onFechar,
+  onSalvo,
+}: {
+  oficinas: OficinaComVagas[];
+  onFechar: () => void;
+  onSalvo: () => void;
+}) {
+  const [cpf, setCpf] = useState("");
+  const [nome, setNome] = useState("");
+  const [quintaId, setQuintaId] = useState<string | null>(null);
+  const [sextaId, setSextaId] = useState<string | null>(null);
+  const [buscando, setBuscando] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+
+  const quintas = oficinas.filter((o) => o.dia === "quinta" && o.ativa);
+  const sextas = oficinas.filter((o) => o.dia === "sexta" && o.ativa);
+
+  async function preencherNomePorCpf() {
+    const cpfLimpo = cpf.replace(/\D/g, "");
+    if (cpfLimpo.length !== 11) return;
+    setBuscando(true);
+    try {
+      const { data } = await supabase.rpc("buscar_pessoa_por_cpf", { _cpf: cpfLimpo });
+      const linha = Array.isArray(data) ? data[0] : null;
+      if (linha?.nome) setNome(linha.nome as string);
+    } finally {
+      setBuscando(false);
+    }
+  }
+
+  async function salvar() {
+    const cpfLimpo = cpf.replace(/\D/g, "");
+    const nomeLimpo = nome.trim();
+    if (cpfLimpo.length !== 11) {
+      toast.error("CPF inválido (11 dígitos).");
+      return;
+    }
+    if (nomeLimpo.length < 3) {
+      toast.error("Informe o nome.");
+      return;
+    }
+    if (!quintaId && !sextaId) {
+      toast.error("Escolha ao menos uma oficina.");
+      return;
+    }
+    setSalvando(true);
+    const { data, error } = await supabase.rpc("admin_criar_inscricao", {
+      _cpf: cpfLimpo,
+      _nome: nomeLimpo,
+      _oficina_quinta: quintaId as string,
+      _oficina_sexta: sextaId as string,
+    });
+    setSalvando(false);
+    if (error) {
+      toast.error("Falha ao salvar.");
+      return;
+    }
+    const status = (data as { status?: string })?.status;
+    if (status === "sucesso") {
+      toast.success("Inscrição criada.");
+      onSalvo();
+    } else if (status === "cpf_ja_inscrito") toast.error("Este CPF já possui inscrição.");
+    else if (status === "oficina_quinta_lotada") toast.error("Oficina de quinta lotada.");
+    else if (status === "oficina_sexta_lotada") toast.error("Oficina de sexta lotada.");
+    else if (status === "oficinas_iguais") toast.error("Oficinas devem ser diferentes.");
+    else if (status === "nao_autorizado") toast.error("Sem permissão.");
+    else toast.error("Falha: " + (status ?? "desconhecida"));
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onFechar}>
+      <div className="card-elevated w-full max-w-lg max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">Nova inscrição</h3>
+          <button onClick={onFechar} className="rounded-md p-1 hover:bg-muted">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <p className="mb-4 text-xs text-muted-foreground">
+          Cadastre uma pessoa e escolha uma ou as duas oficinas. Se selecionar apenas uma, a inscrição fica marcada como <span className="font-semibold text-orange-700">incompleta</span>.
+        </p>
+
+        <label className="block text-sm font-medium">CPF</label>
+        <input
+          value={formatarCpf(cpf)}
+          onChange={(e) => setCpf(e.target.value.replace(/\D/g, "").slice(0, 11))}
+          onBlur={preencherNomePorCpf}
+          placeholder="000.000.000-00"
+          inputMode="numeric"
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        />
+
+        <label className="mt-4 block text-sm font-medium">
+          Nome completo {buscando && <Loader2 className="ml-1 inline h-3 w-3 animate-spin" />}
+        </label>
+        <input
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          placeholder="Nome do participante"
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        />
+
+        <label className="mt-4 block text-sm font-medium">Oficina de quinta-feira</label>
+        <select
+          value={quintaId ?? ""}
+          onChange={(e) => setQuintaId(e.target.value || null)}
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        >
+          <option value="">— Não participará —</option>
+          {quintas.map((o) => (
+            <option key={o.id} value={o.id} disabled={o.lotada}>
+              {o.titulo} — {o.inscritos}/{o.limite_vagas}{o.lotada ? " (lotada)" : ""}
+            </option>
+          ))}
+        </select>
+
+        <label className="mt-4 block text-sm font-medium">Oficina de sexta-feira</label>
+        <select
+          value={sextaId ?? ""}
+          onChange={(e) => setSextaId(e.target.value || null)}
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        >
+          <option value="">— Não participará —</option>
+          {sextas.map((o) => (
+            <option key={o.id} value={o.id} disabled={o.lotada}>
+              {o.titulo} — {o.inscritos}/{o.limite_vagas}{o.lotada ? " (lotada)" : ""}
+            </option>
+          ))}
+        </select>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            onClick={onFechar}
+            className="inline-flex h-10 items-center gap-1 rounded-lg border border-border bg-card px-4 text-sm hover:bg-muted"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={salvar}
+            disabled={salvando}
+            className="brand-gradient inline-flex h-10 items-center gap-1 rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            {salvando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Criar inscrição
+          </button>
         </div>
       </div>
     </div>
