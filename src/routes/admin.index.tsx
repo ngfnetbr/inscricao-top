@@ -218,8 +218,8 @@ function Painel({ email }: { email: string }) {
     const linhas = [
       ["Protocolo", "Nome", "CPF", "Oficina Quinta", "Ministrante Quinta", "Oficina Sexta", "Ministrante Sexta", "Data/hora"],
       ...inscricoes.map((i) => {
-        const q = mapaOficinas.get(i.oficina_quinta_id);
-        const s = mapaOficinas.get(i.oficina_sexta_id);
+        const q = i.oficina_quinta_id ? mapaOficinas.get(i.oficina_quinta_id) : undefined;
+        const s = i.oficina_sexta_id ? mapaOficinas.get(i.oficina_sexta_id) : undefined;
         return [
           i.protocolo,
           i.nome,
