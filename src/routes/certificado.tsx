@@ -130,10 +130,10 @@ function PainelCertificado() {
       const certs: CertData[] = [];
       for (const i of insR.data ?? []) {
         const oficinas: { titulo: string; horas: number }[] = [];
-        const hQ = horasDe(i.id, i.oficina_quinta_id);
-        const hS = horasDe(i.id, i.oficina_sexta_id);
-        if (hQ > 0) oficinas.push({ titulo: ofMap.get(i.oficina_quinta_id) ?? "", horas: hQ });
-        if (hS > 0) oficinas.push({ titulo: ofMap.get(i.oficina_sexta_id) ?? "", horas: hS });
+        const hQ = i.oficina_quinta_id ? horasDe(i.id, i.oficina_quinta_id) : 0;
+        const hS = i.oficina_sexta_id ? horasDe(i.id, i.oficina_sexta_id) : 0;
+        if (hQ > 0 && i.oficina_quinta_id) oficinas.push({ titulo: ofMap.get(i.oficina_quinta_id) ?? "", horas: hQ });
+        if (hS > 0 && i.oficina_sexta_id) oficinas.push({ titulo: ofMap.get(i.oficina_sexta_id) ?? "", horas: hS });
         if (oficinas.length === 0) continue;
         certs.push({
           nome: i.nome,
