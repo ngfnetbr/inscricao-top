@@ -610,6 +610,17 @@ function Painel({ email }: { email: string }) {
         </div>
       </main>
 
+      {criandoInscricao && (
+        <ModalNovaInscricao
+          oficinas={oficinas}
+          onFechar={() => setCriandoInscricao(false)}
+          onSalvo={() => {
+            setCriandoInscricao(false);
+            carregar();
+          }}
+        />
+      )}
+
       {editando && (
         <ModalEditar
           inscricao={editando}
