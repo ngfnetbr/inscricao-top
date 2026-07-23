@@ -396,10 +396,18 @@ function Painel({ email }: { email: string }) {
         </div>
 
         <div className="mt-8 mb-3">
-          <h2 className="text-xl font-bold text-foreground">
-            Inscrições ({inscricoesFiltradas.length}
-            {(filtroNome || filtroCpf || filtroStatus !== "todos") && ` de ${inscricoes.length}`})
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-xl font-bold text-foreground">
+              Inscrições ({inscricoesFiltradas.length}
+              {(filtroNome || filtroCpf || filtroStatus !== "todos") && ` de ${inscricoes.length}`})
+            </h2>
+            <button
+              onClick={() => setCriandoInscricao(true)}
+              className="brand-gradient inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              <Plus className="h-4 w-4" /> Nova inscrição
+            </button>
+          </div>
           <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
             <input
               value={filtroNome}
@@ -420,9 +428,10 @@ function Painel({ email }: { email: string }) {
               className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/40 sm:w-52"
             >
               <option value="todos">Todos os status</option>
+              <option value="incompleto">Incompleta (falta 1 oficina)</option>
               <option value="sem_chamada">Sem chamada</option>
               <option value="parcial">Parcial</option>
-              <option value="concluido">Concluído (16h)</option>
+              <option value="concluido">Concluído</option>
             </select>
           </div>
           {(filtroNome || filtroCpf || filtroStatus !== "todos") && (
