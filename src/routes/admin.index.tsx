@@ -808,10 +808,11 @@ function ModalEditar({
 
         <label className="mt-4 block text-sm font-medium">Oficina de quinta-feira</label>
         <select
-          value={quintaId}
-          onChange={(e) => setQuintaId(e.target.value)}
+          value={quintaId ?? ""}
+          onChange={(e) => setQuintaId(e.target.value || null)}
           className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
         >
+          <option value="">— Sem oficina (só sexta) —</option>
           {quintas.map((o) => (
             <option key={o.id} value={o.id}>
               {o.titulo} — {o.inscritos}/{o.limite_vagas}
@@ -821,10 +822,11 @@ function ModalEditar({
 
         <label className="mt-4 block text-sm font-medium">Oficina de sexta-feira</label>
         <select
-          value={sextaId}
-          onChange={(e) => setSextaId(e.target.value)}
+          value={sextaId ?? ""}
+          onChange={(e) => setSextaId(e.target.value || null)}
           className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
         >
+          <option value="">— Sem oficina (só quinta) —</option>
           {sextas.map((o) => (
             <option key={o.id} value={o.id}>
               {o.titulo} — {o.inscritos}/{o.limite_vagas}
