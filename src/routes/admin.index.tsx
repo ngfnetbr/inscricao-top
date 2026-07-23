@@ -750,8 +750,8 @@ function ModalEditar({
   onSalvo: () => void;
 }) {
   const [nome, setNome] = useState(inscricao.nome);
-  const [quintaId, setQuintaId] = useState(inscricao.oficina_quinta_id);
-  const [sextaId, setSextaId] = useState(inscricao.oficina_sexta_id);
+  const [quintaId, setQuintaId] = useState<string | null>(inscricao.oficina_quinta_id);
+  const [sextaId, setSextaId] = useState<string | null>(inscricao.oficina_sexta_id);
   const [salvando, setSalvando] = useState(false);
 
   const quintas = oficinas.filter((o) => o.dia === "quinta");
