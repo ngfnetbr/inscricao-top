@@ -36,8 +36,8 @@ type Inscricao = {
   nome: string;
   protocolo: string;
   criado_em: string;
-  oficina_quinta_id: string;
-  oficina_sexta_id: string;
+  oficina_quinta_id: string | null;
+  oficina_sexta_id: string | null;
 };
 
 function AdminPage() {
