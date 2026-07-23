@@ -472,15 +472,27 @@ function Painel({ email }: { email: string }) {
                       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
                       : st?.status === "parcial"
                         ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
-                        : "bg-muted text-muted-foreground border-border";
+                        : st?.status === "incompleto"
+                          ? "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30"
+                          : "bg-muted text-muted-foreground border-border";
                   const label =
-                    st?.status === "concluido" ? "Concluído" : st?.status === "parcial" ? "Parcial" : "Sem chamada";
+                    st?.status === "concluido" ? "Concluído"
+                      : st?.status === "parcial" ? "Parcial"
+                      : st?.status === "incompleto" ? "Incompleta"
+                      : "Sem chamada";
                   return (
                     <tr key={i.id}>
-                      <td className="px-3 py-3 font-medium text-foreground">{i.nome}</td>
+                      <td className="px-3 py-3 font-medium text-foreground">
+                        {i.nome}
+                        {st?.incompleto && (
+                          <span className="ml-2 rounded-full bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-orange-700 dark:text-orange-400">
+                            falta 1 oficina
+                          </span>
+                        )}
+                      </td>
                       <td className="px-3 py-3">{formatarCpf(i.cpf)}</td>
-                      <td className="px-3 py-3">{mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—"}</td>
-                      <td className="px-3 py-3">{mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—"}</td>
+                      <td className="px-3 py-3">{i.oficina_quinta_id ? (mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—") : <span className="text-orange-600">— Sem oficina —</span>}</td>
+                      <td className="px-3 py-3">{i.oficina_sexta_id ? (mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—") : <span className="text-orange-600">— Sem oficina —</span>}</td>
                       <td className="px-3 py-3">
                         <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${badge}`}>
                           {label} · {st?.horas ?? 0}h
