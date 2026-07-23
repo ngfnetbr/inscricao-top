@@ -1113,3 +1113,156 @@ function ManutencaoCard() {
     </div>
   );
 }
+
+function ModalNovaInscricao({
+  oficinas,
+  onFechar,
+  onSalvo,
+}: {
+  oficinas: OficinaComVagas[];
+  onFechar: () => void;
+  onSalvo: () => void;
+}) {
+  const [cpf, setCpf] = useState("");
+  const [nome, setNome] = useState("");
+  const [quintaId, setQuintaId] = useState<string | null>(null);
+  const [sextaId, setSextaId] = useState<string | null>(null);
+  const [buscando, setBuscando] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+
+  const quintas = oficinas.filter((o) => o.dia === "quinta" && o.ativa);
+  const sextas = oficinas.filter((o) => o.dia === "sexta" && o.ativa);
+
+  async function preencherNomePorCpf() {
+    const cpfLimpo = cpf.replace(/\D/g, "");
+    if (cpfLimpo.length !== 11) return;
+    setBuscando(true);
+    try {
+      const { data } = await supabase.rpc("buscar_pessoa_por_cpf", { _cpf: cpfLimpo });
+      const linha = Array.isArray(data) ? data[0] : null;
+      if (linha?.nome) setNome(linha.nome as string);
+    } finally {
+      setBuscando(false);
+    }
+  }
+
+  async function salvar() {
+    const cpfLimpo = cpf.replace(/\D/g, "");
+    const nomeLimpo = nome.trim();
+    if (cpfLimpo.length !== 11) {
+      toast.error("CPF inválido (11 dígitos).");
+      return;
+    }
+    if (nomeLimpo.length < 3) {
+      toast.error("Informe o nome.");
+      return;
+    }
+    if (!quintaId && !sextaId) {
+      toast.error("Escolha ao menos uma oficina.");
+      return;
+    }
+    setSalvando(true);
+    const { data, error } = await supabase.rpc("admin_criar_inscricao", {
+      _cpf: cpfLimpo,
+      _nome: nomeLimpo,
+      _oficina_quinta: quintaId as string,
+      _oficina_sexta: sextaId as string,
+    });
+    setSalvando(false);
+    if (error) {
+      toast.error("Falha ao salvar.");
+      return;
+    }
+    const status = (data as { status?: string })?.status;
+    if (status === "sucesso") {
+      toast.success("Inscrição criada.");
+      onSalvo();
+    } else if (status === "cpf_ja_inscrito") toast.error("Este CPF já possui inscrição.");
+    else if (status === "oficina_quinta_lotada") toast.error("Oficina de quinta lotada.");
+    else if (status === "oficina_sexta_lotada") toast.error("Oficina de sexta lotada.");
+    else if (status === "oficinas_iguais") toast.error("Oficinas devem ser diferentes.");
+    else if (status === "nao_autorizado") toast.error("Sem permissão.");
+    else toast.error("Falha: " + (status ?? "desconhecida"));
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onFechar}>
+      <div className="card-elevated w-full max-w-lg max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">Nova inscrição</h3>
+          <button onClick={onFechar} className="rounded-md p-1 hover:bg-muted">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <p className="mb-4 text-xs text-muted-foreground">
+          Cadastre uma pessoa e escolha uma ou as duas oficinas. Se selecionar apenas uma, a inscrição fica marcada como <span className="font-semibold text-orange-700">incompleta</span>.
+        </p>
+
+        <label className="block text-sm font-medium">CPF</label>
+        <input
+          value={formatarCpf(cpf)}
+          onChange={(e) => setCpf(e.target.value.replace(/\D/g, "").slice(0, 11))}
+          onBlur={preencherNomePorCpf}
+          placeholder="000.000.000-00"
+          inputMode="numeric"
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        />
+
+        <label className="mt-4 block text-sm font-medium">
+          Nome completo {buscando && <Loader2 className="ml-1 inline h-3 w-3 animate-spin" />}
+        </label>
+        <input
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          placeholder="Nome do participante"
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        />
+
+        <label className="mt-4 block text-sm font-medium">Oficina de quinta-feira</label>
+        <select
+          value={quintaId ?? ""}
+          onChange={(e) => setQuintaId(e.target.value || null)}
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        >
+          <option value="">— Não participará —</option>
+          {quintas.map((o) => (
+            <option key={o.id} value={o.id} disabled={o.lotada}>
+              {o.titulo} — {o.inscritos}/{o.limite_vagas}{o.lotada ? " (lotada)" : ""}
+            </option>
+          ))}
+        </select>
+
+        <label className="mt-4 block text-sm font-medium">Oficina de sexta-feira</label>
+        <select
+          value={sextaId ?? ""}
+          onChange={(e) => setSextaId(e.target.value || null)}
+          className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus:border-primary focus:ring-2 focus:ring-ring/40"
+        >
+          <option value="">— Não participará —</option>
+          {sextas.map((o) => (
+            <option key={o.id} value={o.id} disabled={o.lotada}>
+              {o.titulo} — {o.inscritos}/{o.limite_vagas}{o.lotada ? " (lotada)" : ""}
+            </option>
+          ))}
+        </select>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            onClick={onFechar}
+            className="inline-flex h-10 items-center gap-1 rounded-lg border border-border bg-card px-4 text-sm hover:bg-muted"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={salvar}
+            disabled={salvando}
+            className="brand-gradient inline-flex h-10 items-center gap-1 rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            {salvando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Criar inscrição
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
