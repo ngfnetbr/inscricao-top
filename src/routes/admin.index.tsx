@@ -250,6 +250,7 @@ function Painel({ email }: { email: string }) {
     const m = new Map<string, Inscricao[]>();
     inscricoes.forEach((i) => {
       for (const oid of [i.oficina_quinta_id, i.oficina_sexta_id]) {
+        if (!oid) continue;
         const arr = m.get(oid) ?? [];
         arr.push(i);
         m.set(oid, arr);
