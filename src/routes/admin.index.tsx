@@ -766,8 +766,8 @@ function ModalEditar({
     setSalvando(true);
     const { data, error } = await supabase.rpc("admin_atualizar_inscricao", {
       _inscricao_id: inscricao.id,
-      _oficina_quinta: quintaId,
-      _oficina_sexta: sextaId,
+      _oficina_quinta: quintaId as string,
+      _oficina_sexta: sextaId as string,
       _nome: nomeLimpo,
     });
     setSalvando(false);
