@@ -541,15 +541,23 @@ function Painel({ email }: { email: string }) {
                   ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
                   : st?.status === "parcial"
                     ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
-                    : "bg-muted text-muted-foreground border-border";
+                    : st?.status === "incompleto"
+                      ? "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30"
+                      : "bg-muted text-muted-foreground border-border";
               const label =
-                st?.status === "concluido" ? "Concluído" : st?.status === "parcial" ? "Parcial" : "Sem chamada";
+                st?.status === "concluido" ? "Concluído"
+                  : st?.status === "parcial" ? "Parcial"
+                  : st?.status === "incompleto" ? "Incompleta"
+                  : "Sem chamada";
               return (
                 <li key={i.id} className="p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-foreground">{i.nome}</p>
                       <p className="text-xs text-muted-foreground">{formatarCpf(i.cpf)}</p>
+                      {st?.incompleto && (
+                        <p className="mt-1 text-[10px] font-bold uppercase text-orange-700 dark:text-orange-400">Falta 1 oficina</p>
+                      )}
                     </div>
                     <div className="flex shrink-0 gap-1">
                       <button
@@ -571,11 +579,11 @@ function Painel({ email }: { email: string }) {
                   <dl className="mt-2 space-y-1 text-xs">
                     <div className="flex gap-2">
                       <dt className="w-14 shrink-0 text-muted-foreground">Quinta</dt>
-                      <dd className="min-w-0 flex-1 text-foreground">{mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—"}</dd>
+                      <dd className="min-w-0 flex-1 text-foreground">{i.oficina_quinta_id ? (mapaOficinas.get(i.oficina_quinta_id)?.titulo ?? "—") : <span className="text-orange-600">— Sem oficina —</span>}</dd>
                     </div>
                     <div className="flex gap-2">
                       <dt className="w-14 shrink-0 text-muted-foreground">Sexta</dt>
-                      <dd className="min-w-0 flex-1 text-foreground">{mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—"}</dd>
+                      <dd className="min-w-0 flex-1 text-foreground">{i.oficina_sexta_id ? (mapaOficinas.get(i.oficina_sexta_id)?.titulo ?? "—") : <span className="text-orange-600">— Sem oficina —</span>}</dd>
                     </div>
                   </dl>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
