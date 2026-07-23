@@ -77,8 +77,8 @@ export type Database = {
           criado_em: string
           id: string
           nome: string
-          oficina_quinta_id: string
-          oficina_sexta_id: string
+          oficina_quinta_id: string | null
+          oficina_sexta_id: string | null
           pessoa_id: string | null
           protocolo: string
         }
@@ -87,8 +87,8 @@ export type Database = {
           criado_em?: string
           id?: string
           nome: string
-          oficina_quinta_id: string
-          oficina_sexta_id: string
+          oficina_quinta_id?: string | null
+          oficina_sexta_id?: string | null
           pessoa_id?: string | null
           protocolo: string
         }
@@ -97,8 +97,8 @@ export type Database = {
           criado_em?: string
           id?: string
           nome?: string
-          oficina_quinta_id?: string
-          oficina_sexta_id?: string
+          oficina_quinta_id?: string | null
+          oficina_sexta_id?: string | null
           pessoa_id?: string | null
           protocolo?: string
         }
@@ -329,6 +329,15 @@ export type Database = {
         Args: {
           _inscricao_id: string
           _nome?: string
+          _oficina_quinta: string
+          _oficina_sexta: string
+        }
+        Returns: Json
+      }
+      admin_criar_inscricao: {
+        Args: {
+          _cpf: string
+          _nome: string
           _oficina_quinta: string
           _oficina_sexta: string
         }
