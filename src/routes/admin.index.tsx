@@ -146,7 +146,8 @@ function Painel({ email }: { email: string }) {
   const [carregando, setCarregando] = useState(true);
   const [filtroNome, setFiltroNome] = useState("");
   const [filtroCpf, setFiltroCpf] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState<"todos" | "sem_chamada" | "parcial" | "concluido">("todos");
+  const [filtroStatus, setFiltroStatus] = useState<"todos" | "sem_chamada" | "parcial" | "concluido" | "incompleto">("todos");
+  const [criandoInscricao, setCriandoInscricao] = useState(false);
   const [editando, setEditando] = useState<Inscricao | null>(null);
   const [editandoOficina, setEditandoOficina] = useState<OficinaComVagas | null>(null);
   const [oficinaAberta, setOficinaAberta] = useState<string | null>(null);
