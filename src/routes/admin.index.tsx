@@ -358,6 +358,19 @@ function Painel({ email }: { email: string }) {
               <Download className="h-4 w-4" /> PDF oficinas
             </button>
             <button
+              onClick={async () => {
+                try {
+                  const { gerarPdfPresencas } = await import("@/lib/presencas-pdf");
+                  await gerarPdfPresencas();
+                } catch {
+                  toast.error("Falha ao gerar PDF de presenças.");
+                }
+              }}
+              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted"
+            >
+              <Download className="h-4 w-4" /> PDF presenças
+            </button>
+            <button
               onClick={exportarCsv}
               className="brand-gradient inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-primary-foreground"
             >
