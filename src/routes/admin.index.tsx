@@ -144,6 +144,8 @@ function Painel({ email }: { email: string }) {
   const [oficinas, setOficinas] = useState<OficinaComVagas[]>([]);
   const [presencas, setPresencas] = useState<Array<{ inscricao_id: string; oficina_id: string; manha: boolean; tarde: boolean }>>([]);
   const [carregando, setCarregando] = useState(true);
+  const [aba, setAba] = useState<"painel" | "formacoes">("painel");
+  const [erroRelatorio, setErroRelatorio] = useState(false);
   const [filtroNome, setFiltroNome] = useState("");
   const [filtroCpf, setFiltroCpf] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<"todos" | "sem_chamada" | "parcial" | "concluido" | "incompleto">("todos");
@@ -165,6 +167,7 @@ function Painel({ email }: { email: string }) {
       listarOficinas(true),
       supabase.from("presencas").select("inscricao_id, oficina_id, manha, tarde"),
     ]);
+    setErroRelatorio(Boolean(insc.error || pres.error));
     if (insc.error) toast.error("Falha ao carregar inscrições.");
     setInscricoes((insc.data ?? []) as Inscricao[]);
     setOficinas(ofs);
@@ -281,6 +284,23 @@ function Painel({ email }: { email: string }) {
     return m;
   }, [inscricoes, presencas]);
 
+  const formacoesConcluidas = useMemo(() => {
+    const presencaPorOficina = new Map(
+      presencas.map((p) => [`${p.inscricao_id}:${p.oficina_id}`, p]),
+    );
+    return inscricoes.flatMap((inscricao) =>
+      [inscricao.oficina_quinta_id, inscricao.oficina_sexta_id].flatMap((id) => {
+        const oficina = id ? mapaOficinas.get(id) : undefined;
+        const presenca = presencaPorOficina.get(`${inscricao.id}:${id}`);
+        if (!oficina || !presenca || (!oficina.manha && !oficina.tarde)) return [];
+        if ((oficina.manha && !presenca.manha) || (oficina.tarde && !presenca.tarde)) return [];
+        return [{ id: `${inscricao.id}:${id}`, nome: inscricao.nome, oficina }];
+      }),
+    ).sort((a, b) =>
+      a.nome.localeCompare(b.nome, "pt-BR") || a.oficina.titulo.localeCompare(b.oficina.titulo, "pt-BR"),
+    );
+  }, [inscricoes, mapaOficinas, presencas]);
+
   const inscricoesFiltradas = useMemo(() => {
     const fn = filtroNome.trim().toLowerCase();
     const fc = filtroCpf.replace(/\D/g, "");
@@ -338,6 +358,68 @@ function Painel({ email }: { email: string }) {
       </header>
 
       <main className="mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-6">
+        <nav aria-label="Seções do painel" className="mb-5 flex flex-wrap gap-2 border-b border-border pb-3">
+          {([
+            ["painel", "Visão geral"],
+            ["formacoes", "Formações concluídas"],
+          ] as const).map(([id, rotulo]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={aba === id}
+              onClick={() => setAba(id)}
+              className="rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-muted aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+            >
+              {rotulo}
+            </button>
+          ))}
+        </nav>
+        {aba === "formacoes" ? (
+          <section aria-labelledby="titulo-formacoes">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 id="titulo-formacoes" className="text-lg font-semibold">Relatório de formações concluídas</h2>
+              <button
+                type="button"
+                onClick={carregar}
+                disabled={carregando}
+                className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-muted disabled:opacity-60"
+              >
+                Atualizar
+              </button>
+            </div>
+            {carregando ? (
+              <p role="status" className="text-sm text-muted-foreground">Carregando formações…</p>
+            ) : erroRelatorio ? (
+              <p role="alert" className="text-sm text-destructive">Falha ao carregar o relatório. Tente atualizar.</p>
+            ) : formacoesConcluidas.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma formação concluída registrada.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-border bg-card">
+                <table aria-labelledby="titulo-formacoes" className="w-full min-w-[520px] text-left text-sm">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th scope="col" className="px-4 py-3">Profissional</th>
+                      <th scope="col" className="px-4 py-3">Curso</th>
+                      <th scope="col" className="whitespace-nowrap px-4 py-3 text-right">Carga horária</th>
+                      <th scope="col" className="px-4 py-3">Situação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {formacoesConcluidas.map(({ id, nome, oficina }) => (
+                      <tr key={id} className="border-t border-border">
+                        <td className="px-4 py-3 font-medium">{nome}</td>
+                        <td className="px-4 py-3">{oficina.titulo}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{oficina.horas} h</td>
+                        <td className="px-4 py-3">Concluída</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        ) : (
+          <>
         <ManutencaoCard />
         <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xl font-bold text-foreground">Oficinas e ocupação</h2>
@@ -621,6 +703,8 @@ function Painel({ email }: { email: string }) {
             })}
           </ul>
         </div>
+          </>
+        )}
       </main>
 
       {criandoInscricao && (
